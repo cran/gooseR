@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Survey Data Analysis with gooseR</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Survey Data Analysis with gooseR</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(gooseR)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code></pre></div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Survey data often comes with unwieldy column names - long questions
+that make analysis difficult. gooseR’s intelligent survey tools
+transform these into clean, meaningful variable names while preserving
+the original mapping for documentation.</p>
+</div>
+<div id="the-challenge" class="section level2">
+<h2>The Challenge</h2>
+<p>Typical survey exports look like this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Example of raw survey data columns</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>raw_columns <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="st">&quot;ResponseId&quot;</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="st">&quot;How satisfied are you with our customer service on a scale of 1-5?&quot;</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="st">&quot;On a scale of 0-10, how likely are you to recommend our product to a friend or colleague?&quot;</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="st">&quot;What is your annual household income before taxes?&quot;</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="st">&quot;How often do you use our product? (Daily, Weekly, Monthly, Rarely, Never)&quot;</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="st">&quot;Please rate your agreement: The product meets my needs&quot;</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="st">&quot;In which age range do you fall? (18-24, 25-34, 35-44, 45-54, 55-64, 65+)&quot;</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="st">&quot;What is your primary reason for using our product? (Please select all that apply)&quot;</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="fu">print</span>(raw_columns)</span></code></pre></div>
+<p>Working with these names is painful: - Hard to type - Difficult to
+read in code - Problematic in formulas - Messy in visualizations</p>
+</div>
+<div id="the-solution-intelligent-renaming" class="section level2">
+<h2>The Solution: Intelligent Renaming</h2>
+<div id="basic-usage" class="section level3">
+<h3>Basic Usage</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Load your survey data</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>survey_data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;survey_export.csv&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># Automatically rename columns with intelligent abbreviations</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>clean_data <span class="ot">&lt;-</span> <span class="fu">goose_rename_columns</span>(survey_data)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co"># View what happened</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">goose_view_column_map</span>(clean_data)</span></code></pre></div>
+</div>
+<div id="how-it-works" class="section level3">
+<h3>How It Works</h3>
+<p>gooseR recognizes common survey patterns and applies intelligent
+abbreviations:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Pattern Recognition Examples:</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># Satisfaction questions</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="st">&quot;How satisfied are you with our customer service?&quot;</span> </span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co"># → &quot;sat_cust_serv&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># NPS (Net Promoter Score)</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="st">&quot;On a scale of 0-10, how likely are you to recommend...&quot;</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co"># → &quot;nps&quot;</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co"># Demographics</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="st">&quot;What is your annual household income before taxes?&quot;</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co"># → &quot;hh_income&quot;</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="st">&quot;In which age range do you fall?&quot;</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co"># → &quot;age_range&quot;</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co"># Frequency questions</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="st">&quot;How often do you use our product?&quot;</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co"># → &quot;use_freq&quot;</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co"># Likert scales</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="st">&quot;Please rate your agreement: The product meets my needs&quot;</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co"># → &quot;agree_meets_needs&quot;</span></span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co"># Multiple choice</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="st">&quot;What is your primary reason for using our product?&quot;</span></span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co"># → &quot;primary_reason&quot;</span></span></code></pre></div>
+</div>
+<div id="custom-abbreviations" class="section level3">
+<h3>Custom Abbreviations</h3>
+<p>You can provide domain-specific abbreviations:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Create custom dictionary for your domain</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>custom_dict <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="st">&quot;customer service&quot;</span> <span class="ot">=</span> <span class="st">&quot;cs&quot;</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="st">&quot;artificial intelligence&quot;</span> <span class="ot">=</span> <span class="st">&quot;ai&quot;</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="st">&quot;machine learning&quot;</span> <span class="ot">=</span> <span class="st">&quot;ml&quot;</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="st">&quot;return on investment&quot;</span> <span class="ot">=</span> <span class="st">&quot;roi&quot;</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="st">&quot;key performance indicator&quot;</span> <span class="ot">=</span> <span class="st">&quot;kpi&quot;</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>)</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co"># Apply with custom dictionary</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>clean_data <span class="ot">&lt;-</span> <span class="fu">goose_rename_columns</span>(</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  survey_data,</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  <span class="at">custom_abbrev =</span> custom_dict,</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>  <span class="at">max_length =</span> <span class="dv">20</span>  <span class="co"># Maximum variable name length</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+<div id="complete-workflow-example" class="section level2">
+<h2>Complete Workflow Example</h2>
+<div id="step-1-load-and-clean" class="section level3">
+<h3>Step 1: Load and Clean</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Load raw survey data</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>survey <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;qualtrics_export.csv&quot;</span>, </span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>                   <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co"># Check the messy column names</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="fu">names</span>(survey)[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>]</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co"># Clean the column names</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>survey_clean <span class="ot">&lt;-</span> <span class="fu">goose_rename_columns</span>(survey)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co"># Check the clean names</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="fu">names</span>(survey_clean)[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>]</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co"># Save the mapping for documentation</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>mapping <span class="ot">&lt;-</span> <span class="fu">goose_view_column_map</span>(survey_clean)</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="fu">write.csv</span>(mapping, <span class="st">&quot;column_mapping.csv&quot;</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+</div>
+<div id="step-2-get-analysis-guidance" class="section level3">
+<h3>Step 2: Get Analysis Guidance</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Share a sample with goose for context</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">goose_give_sample</span>(survey_clean)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># Get an analysis plan</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>plan <span class="ot">&lt;-</span> <span class="fu">goose_make_a_plan</span>(<span class="st">&quot;exploratory&quot;</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="fu">cat</span>(plan)</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co"># Ask specific questions</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="fu">goose_ask</span>(<span class="st">&quot;What&#39;s the best way to analyze Likert scale data in this survey?&quot;</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="fu">goose_ask</span>(<span class="st">&quot;How should I handle missing data in the income field?&quot;</span>)</span></code></pre></div>
+</div>
+<div id="step-3-perform-analysis" class="section level3">
+<h3>Step 3: Perform Analysis</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Now you can use clean names in your analysis</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>survey_clean <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">group_by</span>(age_range) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>    <span class="at">avg_satisfaction =</span> <span class="fu">mean</span>(sat_overall, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>    <span class="at">avg_nps =</span> <span class="fu">mean</span>(nps, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>()</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(avg_satisfaction))</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co"># Create visualizations with clean labels</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="fu">ggplot</span>(survey_clean, <span class="fu">aes</span>(<span class="at">x =</span> age_range, <span class="at">y =</span> sat_overall)) <span class="sc">+</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>  <span class="fu">theme_brand</span>(<span class="st">&quot;block&quot;</span>) <span class="sc">+</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Satisfaction by Age Group&quot;</span>,</span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Age Range&quot;</span>,</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Overall Satisfaction&quot;</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+<div id="step-4-get-feedback-and-document" class="section level3">
+<h3>Step 4: Get Feedback and Document</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Get feedback on your analysis approach</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;moderate&quot;</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co"># Create documentation</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="fu">goose_handoff</span>()</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co"># Save your work</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="fu">goose_save</span>(</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  survey_clean,</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">category =</span> <span class="st">&quot;survey_data&quot;</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">tags =</span> <span class="fu">c</span>(<span class="st">&quot;cleaned&quot;</span>, <span class="st">&quot;q3_2024&quot;</span>, <span class="st">&quot;customer_satisfaction&quot;</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>)</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co"># Create a continuation prompt for next session</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="fu">goose_continuation_prompt</span>()</span></code></pre></div>
+</div>
+</div>
+<div id="advanced-features" class="section level2">
+<h2>Advanced Features</h2>
+<div id="handling-multiple-survey-waves" class="section level3">
+<h3>Handling Multiple Survey Waves</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Process multiple survey files consistently</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;survey_q1.csv&quot;</span>, <span class="st">&quot;survey_q2.csv&quot;</span>, <span class="st">&quot;survey_q3.csv&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>all_surveys <span class="ot">&lt;-</span> <span class="fu">lapply</span>(files, <span class="cf">function</span>(file) {</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(file)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="fu">goose_rename_columns</span>(data)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>})</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co"># Combine with consistent naming</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>combined <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(all_surveys, <span class="at">.id =</span> <span class="st">&quot;quarter&quot;</span>)</span></code></pre></div>
+</div>
+<div id="pattern-detection-details" class="section level3">
+<h3>Pattern Detection Details</h3>
+<p>gooseR detects these patterns automatically:</p>
+<ol style="list-style-type: decimal">
+<li><strong>NPS Questions</strong>: “likely to recommend”, “scale of
+0-10”</li>
+<li><strong>Satisfaction</strong>: “how satisfied”, “satisfaction
+with”</li>
+<li><strong>Agreement</strong>: “rate your agreement”, “strongly
+agree”</li>
+<li><strong>Frequency</strong>: “how often”, “frequency of”</li>
+<li><strong>Demographics</strong>: “age”, “income”, “education”,
+“gender”</li>
+<li><strong>Importance</strong>: “how important”, “importance of”</li>
+<li><strong>Likelihood</strong>: “how likely”, “likelihood of”</li>
+</ol>
+</div>
+<div id="preserving-original-questions" class="section level3">
+<h3>Preserving Original Questions</h3>
+<p>The mapping is always preserved:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># After renaming</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>clean_data <span class="ot">&lt;-</span> <span class="fu">goose_rename_columns</span>(survey_data)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co"># Access the mapping</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="fu">attr</span>(clean_data, <span class="st">&quot;column_map&quot;</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co"># Or use the helper function</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>mapping <span class="ot">&lt;-</span> <span class="fu">goose_view_column_map</span>(clean_data)</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co"># Use in reports</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="fu">kable</span>(</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>  mapping,</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Survey Variable Mapping&quot;</span>,</span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Variable Name&quot;</span>, <span class="st">&quot;Original Question&quot;</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+<div id="tips-and-best-practices" class="section level2">
+<h2>Tips and Best Practices</h2>
+<ol style="list-style-type: decimal">
+<li><p><strong>Always Save the Mapping</strong>: Keep the column mapping
+for documentation and methodology sections</p></li>
+<li><p><strong>Use Custom Dictionaries</strong>: Add industry-specific
+abbreviations for consistent naming</p></li>
+<li><p><strong>Check the Results</strong>: Review renamed columns to
+ensure they make sense</p></li>
+<li><p><strong>Combine with Memory</strong>: Save cleaned datasets with
+descriptive tags</p></li>
+<li><p><strong>Document Your Work</strong>: Use
+<code>goose_handoff()</code> to create documentation</p></li>
+</ol>
+</div>
+<div id="common-issues-and-solutions" class="section level2">
+<h2>Common Issues and Solutions</h2>
+<div id="issue-names-too-long" class="section level3">
+<h3>Issue: Names Too Long</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Set maximum length</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>clean <span class="ot">&lt;-</span> <span class="fu">goose_rename_columns</span>(survey, <span class="at">max_length =</span> <span class="dv">15</span>)</span></code></pre></div>
+</div>
+<div id="issue-duplicate-names-after-abbreviation" class="section level3">
+<h3>Issue: Duplicate Names After Abbreviation</h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># gooseR automatically handles duplicates by adding numbers</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co"># &quot;satisfaction_1&quot;, &quot;satisfaction_2&quot;, etc.</span></span></code></pre></div>
+</div>
+<div id="issue-special-characters-in-questions" class="section level3">
+<h3>Issue: Special Characters in Questions</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># gooseR automatically removes special characters</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co"># &quot;What&#39;s your opinion?&quot; → &quot;opinion&quot;</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co"># &quot;Rate 1-5: Service&quot; → &quot;rate_service&quot;</span></span></code></pre></div>
+</div>
+</div>
+<div id="integration-with-other-gooser-features" class="section level2">
+<h2>Integration with Other gooseR Features</h2>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Combine with AI analysis</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">goose_give_sample</span>(clean_data)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>advice <span class="ot">&lt;-</span> <span class="fu">goose_ask</span>(<span class="st">&quot;What statistical tests should I use for this Likert scale data?&quot;</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co"># Get code review</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;gentle&quot;</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co"># Save for later</span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="fu">goose_save</span>(clean_data, <span class="at">category =</span> <span class="st">&quot;surveys&quot;</span>, <span class="at">tags =</span> <span class="fu">c</span>(<span class="st">&quot;2024&quot;</span>, <span class="st">&quot;cleaned&quot;</span>))</span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="co"># Create formatted output</span></span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>results <span class="ot">&lt;-</span> clean_data <span class="sc">%&gt;%</span></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a>  <span class="fu">group_by</span>(age_range) <span class="sc">%&gt;%</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_sat =</span> <span class="fu">mean</span>(sat_overall, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="fu">goose_format_table</span>(results)</span></code></pre></div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>gooseR’s survey tools eliminate the tedious work of cleaning survey
+data, letting you focus on analysis and insights. The intelligent
+pattern recognition ensures consistent, meaningful variable names while
+preserving the full context of your original questions.</p>
+<p>Next: Check out the <a href="code-review-testing.html">Code Review
+and Testing</a> vignette to learn about gooseR’s development tools.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

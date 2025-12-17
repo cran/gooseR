@@ -1,0 +1,9 @@
+citHeader("To cite gooseR in publications use:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "gooseR: R Integration for Goose AI",
+  author = c(person("Brandon", "Theriault")),
+  year = format(Sys.Date(), "%Y"),
+  note = "R package"
+)

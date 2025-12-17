@@ -1,0 +1,411 @@
+---
+title: "Code Review and Testing with gooseR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Code Review and Testing with gooseR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+```{r setup}
+library(gooseR)
+```
+
+## Introduction
+
+gooseR provides intelligent code review that goes beyond static analysis. Unlike traditional linters that check syntax, gooseR actually reads and understands your code, providing context-aware feedback based on what you're trying to accomplish.
+
+## The Power of goose_honk()
+
+The `goose_honk()` function is your intelligent code reviewer. It offers four severity levels, each with a different personality and focus:
+
+### Severity Levels
+
+```{r}
+# Gentle - Encouraging and constructive
+goose_honk(severity = "gentle")
+# "I notice you're using a loop here. Have you considered using lapply()? 
+#  It might be more efficient! Your code structure looks good overall! 🦆"
+
+# Moderate - Balanced and professional
+goose_honk(severity = "moderate")
+# "Your loop on line 15 could be replaced with vectorized operations for 
+#  better performance. Also, consider adding error handling for the mean() 
+#  function in case of NA values."
+
+# Harsh - Direct and critical
+goose_honk(severity = "harsh")
+# "That loop is killing your performance. Use vectorization. No error 
+#  handling? That's asking for production failures. Fix the variable 
+#  naming - 'x' and 'df' tell me nothing."
+
+# Brutal - No holds barred
+goose_honk(severity = "brutal")
+# "This code is a disaster. Loops in R? Really? No error handling, 
+#  meaningless variable names, and zero documentation. Did you even 
+#  test this? Start over and do it right."
+```
+
+## Real-World Example: Data Analysis Script
+
+Let's see how goose_honk() helps improve a real analysis:
+
+```{r}
+# A typical analysis script with issues
+analyze_sales <- function(sales_data) {
+  # Calculate totals
+  total = 0
+  for(i in 1:nrow(sales_data)) {
+    total = total + sales_data$amount[i]
+  }
+  
+  # Get average
+  avg = mean(sales_data$amount)
+  
+  # Find best month
+  best = sales_data[sales_data$amount == max(sales_data$amount),]
+  
+  # Make plot
+  plot(sales_data$amount)
+  
+  return(list(total, avg, best))
+}
+
+# Get gentle feedback first
+goose_honk(severity = "gentle")
+```
+
+### Gentle Review Output:
+```
+🦆 Hey there! Your analyze_sales function is a great start! Here are some friendly suggestions:
+
+✨ Opportunities for improvement:
+• The loop for calculating total could be replaced with sum(sales_data$amount) - much faster!
+• Consider checking for NA values in your mean calculation: mean(sales_data$amount, na.rm = TRUE)
+• Your plot could use some labels to make it clearer
+
+💡 Quick wins:
+• Named list elements would make your return value clearer
+• Adding input validation would make your function more robust
+
+Keep up the good work! Your logic is sound! 🌟
+```
+
+```{r}
+# Now let's get more critical feedback
+goose_honk(severity = "harsh")
+```
+
+### Harsh Review Output:
+```
+Your analyze_sales function has serious issues:
+
+PERFORMANCE PROBLEMS:
+- Line 3-6: That loop is inexcusable. Use sum(sales_data$amount). You're writing R like it's C.
+- This will be 100x slower on large datasets.
+
+BUGS WAITING TO HAPPEN:
+- No NA handling in mean() - this WILL break in production
+- max() without na.rm = TRUE is a ticking time bomb
+- What if multiple months have the same max value? Your subsetting is naive.
+
+POOR PRACTICES:
+- Unnamed return list? How is anyone supposed to use this?
+- No input validation - what if sales_data is NULL? Empty? Missing columns?
+- Base R plotting in 2024? At least use ggplot2.
+
+Fix these issues before this sees production.
+```
+
+## Improved Version After Review
+
+Based on the feedback, here's an improved version:
+
+```{r}
+analyze_sales <- function(sales_data) {
+  # Input validation
+  if (is.null(sales_data) || nrow(sales_data) == 0) {
+    stop("sales_data cannot be NULL or empty")
+  }
+  if (!"amount" %in% names(sales_data)) {
+    stop("sales_data must contain 'amount' column")
+  }
+  
+  # Calculate metrics with NA handling
+  total_sales <- sum(sales_data$amount, na.rm = TRUE)
+  avg_sales <- mean(sales_data$amount, na.rm = TRUE)
+  
+  # Find best months (handle ties)
+  max_amount <- max(sales_data$amount, na.rm = TRUE)
+  best_months <- sales_data[sales_data$amount == max_amount & 
+                           !is.na(sales_data$amount), ]
+  
+  # Create informative visualization
+  library(ggplot2)
+  p <- ggplot(sales_data, aes(x = seq_along(amount), y = amount)) +
+    geom_line() +
+    geom_point() +
+    theme_brand("block") +
+    labs(title = "Sales Trend", x = "Period", y = "Sales Amount")
+  
+  print(p)
+  
+  # Return named list
+  return(list(
+    total = total_sales,
+    average = avg_sales,
+    best_months = best_months,
+    plot = p
+  ))
+}
+
+# Check our improvements
+goose_honk(severity = "moderate")
+```
+
+## Context-Aware Analysis
+
+goose_honk() understands different types of R code:
+
+### Data Manipulation
+```{r}
+# It recognizes dplyr chains
+result <- data %>%
+  filter(x > 10) %>%
+  group_by(category) %>%
+  summarise(mean = mean(value))
+
+goose_honk()
+# "Good use of dplyr! Consider adding .groups = 'drop' to summarise() 
+#  to avoid the grouped data frame warning."
+```
+
+### Statistical Models
+```{r}
+# It understands modeling
+model <- lm(mpg ~ wt + cyl, data = mtcars)
+
+goose_honk()
+# "Linear model looks good. Have you checked assumptions? 
+#  Consider plot(model) for diagnostics. Also, you might want 
+#  to check for multicollinearity between wt and cyl."
+```
+
+### Visualization
+```{r}
+# It recognizes ggplot2
+p <- ggplot(data, aes(x, y)) + geom_point()
+
+goose_honk()
+# "Basic scatter plot. Consider adding labels with labs(), 
+#  applying a theme, and perhaps adding a trend line with 
+#  geom_smooth() if appropriate."
+```
+
+## Generating Tests
+
+gooseR can generate test suites for your functions:
+
+```{r}
+# Your function
+calculate_bmi <- function(weight_kg, height_m) {
+  if (height_m <= 0) stop("Height must be positive")
+  if (weight_kg <= 0) stop("Weight must be positive")
+  
+  bmi <- weight_kg / (height_m ^ 2)
+  
+  category <- if (bmi < 18.5) "Underweight"
+  else if (bmi < 25) "Normal"
+  else if (bmi < 30) "Overweight"
+  else "Obese"
+  
+  return(list(bmi = bmi, category = category))
+}
+
+# Generate tests
+tests <- goose_generate_tests("calculate_bmi")
+cat(tests)
+```
+
+### Generated Tests:
+```r
+test_that("calculate_bmi works correctly", {
+  # Test normal case
+  result <- calculate_bmi(70, 1.75)
+  expect_equal(result$bmi, 22.86, tolerance = 0.01)
+  expect_equal(result$category, "Normal")
+  
+  # Test edge cases
+  expect_equal(calculate_bmi(50, 1.8)$category, "Underweight")
+  expect_equal(calculate_bmi(85, 1.75)$category, "Overweight")
+  expect_equal(calculate_bmi(100, 1.7)$category, "Obese")
+  
+  # Test error conditions
+  expect_error(calculate_bmi(0, 1.75), "Weight must be positive")
+  expect_error(calculate_bmi(70, 0), "Height must be positive")
+  expect_error(calculate_bmi(-70, 1.75), "Weight must be positive")
+  
+  # Test boundary conditions
+  result_boundary <- calculate_bmi(56.25, 1.5)  # Exactly BMI = 25
+  expect_equal(result_boundary$bmi, 25)
+})
+```
+
+## Generating Documentation
+
+Let gooseR write your roxygen2 documentation:
+
+```{r}
+# Your function
+clean_text <- function(text, remove_numbers = FALSE, lowercase = TRUE) {
+  if (lowercase) text <- tolower(text)
+  text <- gsub("[[:punct:]]", " ", text)
+  if (remove_numbers) text <- gsub("[0-9]", "", text)
+  text <- gsub("\\s+", " ", text)
+  trimws(text)
+}
+
+# Generate documentation
+docs <- goose_document("clean_text")
+cat(docs)
+```
+
+### Generated Documentation:
+```r
+#' Clean and Preprocess Text Data
+#'
+#' Performs text cleaning operations including punctuation removal,
+#' case conversion, number removal, and whitespace normalization.
+#'
+#' @param text Character vector. The text to be cleaned.
+#' @param remove_numbers Logical. If TRUE, removes all numeric characters
+#'   from the text. Default is FALSE.
+#' @param lowercase Logical. If TRUE, converts all text to lowercase.
+#'   Default is TRUE.
+#'
+#' @return Character vector of the same length as input with cleaned text.
+#'   Punctuation is replaced with spaces, multiple spaces are collapsed
+#'   to single spaces, and leading/trailing whitespace is removed.
+#'
+#' @examples
+#' clean_text("Hello, World! 123")
+#' # [1] "hello world 123"
+#' 
+#' clean_text("Hello, World! 123", remove_numbers = TRUE)
+#' # [1] "hello world"
+#' 
+#' clean_text("HELLO WORLD", lowercase = FALSE)
+#' # [1] "HELLO WORLD"
+#'
+#' @export
+```
+
+## Error Explanation and Fixes
+
+When you encounter errors, gooseR can help:
+
+```{r}
+# You get an error
+data <- read.csv("myfile.csv")
+model <- lm(y ~ x1 + x2 + x3, data = data)
+# Error: object 'y' not found
+
+# Get help
+error_help <- goose_explain_error()
+cat(error_help)
+```
+
+### Error Explanation:
+```
+The error "object 'y' not found" means the column 'y' doesn't exist in your data frame.
+
+POSSIBLE CAUSES:
+1. Column name mismatch (check names(data))
+2. Column was renamed during import
+3. CSV has different column names than expected
+
+SOLUTIONS:
+# Check column names
+names(data)
+
+# If column exists with different name:
+model <- lm(actual_column_name ~ x1 + x2 + x3, data = data)
+
+# Or rename the column:
+names(data)[names(data) == "old_name"] <- "y"
+
+# Defensive approach:
+if (!"y" %in% names(data)) {
+  stop("Column 'y' not found in data. Available columns: ", 
+       paste(names(data), collapse = ", "))
+}
+```
+
+## Best Practices Workflow
+
+Here's a complete development workflow with gooseR:
+
+```{r}
+# 1. Write your function
+my_function <- function(data) {
+  # Initial implementation
+  result <- process_data(data)
+  return(result)
+}
+
+# 2. Get initial review
+goose_honk(severity = "gentle")
+
+# 3. Improve based on feedback
+my_function <- function(data) {
+  # Improved implementation with error handling
+  if (is.null(data)) stop("Data cannot be NULL")
+  result <- process_data(data)
+  return(result)
+}
+
+# 4. Get stricter review
+goose_honk(severity = "moderate")
+
+# 5. Generate documentation
+docs <- goose_document("my_function")
+
+# 6. Generate tests
+tests <- goose_generate_tests("my_function")
+
+# 7. Final review
+goose_honk(severity = "harsh")
+
+# 8. Save your work
+goose_save(my_function, category = "functions", tags = c("reviewed", "tested"))
+```
+
+## Integration with RStudio/Positron
+
+Use the addins for quick access:
+
+1. **Quick Review**: Select code and use the "Review Code" addin
+2. **Generate Docs**: Place cursor in function and use "Document Function" addin
+3. **Explain Error**: When you hit an error, use "Explain Last Error" addin
+
+## Tips for Effective Code Review
+
+1. **Start Gentle**: Begin with gentle reviews to build confidence
+2. **Progress Gradually**: Move to harsher reviews as code improves
+3. **Focus on Patterns**: goose_honk() identifies recurring issues
+4. **Learn from Feedback**: Each review teaches best practices
+5. **Review Often**: Regular reviews during development, not just at the end
+
+## Conclusion
+
+gooseR's code review and testing features transform you into a better R programmer. The context-aware feedback, automatic test generation, and documentation creation save time while improving code quality.
+
+For more information about gooseR's capabilities, see the other vignettes in the package documentation.

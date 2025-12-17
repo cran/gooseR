@@ -1,0 +1,34 @@
+Name: GooseR Chat
+Description: Interactive AI chat interface
+Binding: goose_addin_chat
+Interactive: true
+
+Name: Insert Code Snippet
+Description: Generate and insert code snippets
+Binding: goose_addin_snippet
+Interactive: true
+
+Name: Review Selected Code
+Description: Get AI review of selected code
+Binding: goose_addin_review
+Interactive: true
+
+Name: Template Builder
+Description: Create and manage prompt templates
+Binding: goose_addin_template
+Interactive: true
+
+Name: Quick Ask
+Description: Quick question to Goose (non-interactive)
+Binding: goose_addin_quick
+Interactive: false
+
+Name: Cache Browser
+Description: Browse and manage cached responses
+Binding: goose_cache_ui
+Interactive: true
+
+Name: Conversation Manager
+Description: Manage AI conversation sessions
+Binding: goose_conversation_ui
+Interactive: true

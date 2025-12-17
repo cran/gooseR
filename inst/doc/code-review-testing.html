@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Code Review and Testing with gooseR</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Code Review and Testing with gooseR</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(gooseR)</span></code></pre></div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>gooseR provides intelligent code review that goes beyond static
+analysis. Unlike traditional linters that check syntax, gooseR actually
+reads and understands your code, providing context-aware feedback based
+on what you’re trying to accomplish.</p>
+</div>
+<div id="the-power-of-goose_honk" class="section level2">
+<h2>The Power of goose_honk()</h2>
+<p>The <code>goose_honk()</code> function is your intelligent code
+reviewer. It offers four severity levels, each with a different
+personality and focus:</p>
+<div id="severity-levels" class="section level3">
+<h3>Severity Levels</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Gentle - Encouraging and constructive</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;gentle&quot;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># &quot;I notice you&#39;re using a loop here. Have you considered using lapply()? </span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#  It might be more efficient! Your code structure looks good overall! 🦆&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co"># Moderate - Balanced and professional</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;moderate&quot;</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># &quot;Your loop on line 15 could be replaced with vectorized operations for </span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#  better performance. Also, consider adding error handling for the mean() </span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#  function in case of NA values.&quot;</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co"># Harsh - Direct and critical</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;harsh&quot;</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co"># &quot;That loop is killing your performance. Use vectorization. No error </span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#  handling? That&#39;s asking for production failures. Fix the variable </span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#  naming - &#39;x&#39; and &#39;df&#39; tell me nothing.&quot;</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co"># Brutal - No holds barred</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;brutal&quot;</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co"># &quot;This code is a disaster. Loops in R? Really? No error handling, </span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#  meaningless variable names, and zero documentation. Did you even </span></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#  test this? Start over and do it right.&quot;</span></span></code></pre></div>
+</div>
+</div>
+<div id="real-world-example-data-analysis-script" class="section level2">
+<h2>Real-World Example: Data Analysis Script</h2>
+<p>Let’s see how goose_honk() helps improve a real analysis:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># A typical analysis script with issues</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>analyze_sales <span class="ot">&lt;-</span> <span class="cf">function</span>(sales_data) {</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="co"># Calculate totals</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  total <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(sales_data)) {</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>    total <span class="ot">=</span> total <span class="sc">+</span> sales_data<span class="sc">$</span>amount[i]</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  }</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  </span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="co"># Get average</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  avg <span class="ot">=</span> <span class="fu">mean</span>(sales_data<span class="sc">$</span>amount)</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  </span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="co"># Find best month</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  best <span class="ot">=</span> sales_data[sales_data<span class="sc">$</span>amount <span class="sc">==</span> <span class="fu">max</span>(sales_data<span class="sc">$</span>amount),]</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  </span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  <span class="co"># Make plot</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  <span class="fu">plot</span>(sales_data<span class="sc">$</span>amount)</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>  </span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(total, avg, best))</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>}</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co"># Get gentle feedback first</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;gentle&quot;</span>)</span></code></pre></div>
+<div id="gentle-review-output" class="section level3">
+<h3>Gentle Review Output:</h3>
+<pre><code>🦆 Hey there! Your analyze_sales function is a great start! Here are some friendly suggestions:
+
+✨ Opportunities for improvement:
+• The loop for calculating total could be replaced with sum(sales_data$amount) - much faster!
+• Consider checking for NA values in your mean calculation: mean(sales_data$amount, na.rm = TRUE)
+• Your plot could use some labels to make it clearer
+
+💡 Quick wins:
+• Named list elements would make your return value clearer
+• Adding input validation would make your function more robust
+
+Keep up the good work! Your logic is sound! 🌟</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Now let&#39;s get more critical feedback</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;harsh&quot;</span>)</span></code></pre></div>
+</div>
+<div id="harsh-review-output" class="section level3">
+<h3>Harsh Review Output:</h3>
+<pre><code>Your analyze_sales function has serious issues:
+
+PERFORMANCE PROBLEMS:
+- Line 3-6: That loop is inexcusable. Use sum(sales_data$amount). You&#39;re writing R like it&#39;s C.
+- This will be 100x slower on large datasets.
+
+BUGS WAITING TO HAPPEN:
+- No NA handling in mean() - this WILL break in production
+- max() without na.rm = TRUE is a ticking time bomb
+- What if multiple months have the same max value? Your subsetting is naive.
+
+POOR PRACTICES:
+- Unnamed return list? How is anyone supposed to use this?
+- No input validation - what if sales_data is NULL? Empty? Missing columns?
+- Base R plotting in 2024? At least use ggplot2.
+
+Fix these issues before this sees production.</code></pre>
+</div>
+</div>
+<div id="improved-version-after-review" class="section level2">
+<h2>Improved Version After Review</h2>
+<p>Based on the feedback, here’s an improved version:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>analyze_sales <span class="ot">&lt;-</span> <span class="cf">function</span>(sales_data) {</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="co"># Input validation</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(sales_data) <span class="sc">||</span> <span class="fu">nrow</span>(sales_data) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;sales_data cannot be NULL or empty&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  }</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="st">&quot;amount&quot;</span> <span class="sc">%in%</span> <span class="fu">names</span>(sales_data)) {</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;sales_data must contain &#39;amount&#39; column&quot;</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  }</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  </span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="co"># Calculate metrics with NA handling</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  total_sales <span class="ot">&lt;-</span> <span class="fu">sum</span>(sales_data<span class="sc">$</span>amount, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>  avg_sales <span class="ot">&lt;-</span> <span class="fu">mean</span>(sales_data<span class="sc">$</span>amount, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  </span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  <span class="co"># Find best months (handle ties)</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  max_amount <span class="ot">&lt;-</span> <span class="fu">max</span>(sales_data<span class="sc">$</span>amount, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  best_months <span class="ot">&lt;-</span> sales_data[sales_data<span class="sc">$</span>amount <span class="sc">==</span> max_amount <span class="sc">&amp;</span> </span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>                           <span class="sc">!</span><span class="fu">is.na</span>(sales_data<span class="sc">$</span>amount), ]</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  </span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  <span class="co"># Create informative visualization</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>  <span class="fu">library</span>(ggplot2)</span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(sales_data, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">seq_along</span>(amount), <span class="at">y =</span> amount)) <span class="sc">+</span></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a>    <span class="fu">theme_brand</span>(<span class="st">&quot;block&quot;</span>) <span class="sc">+</span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Sales Trend&quot;</span>, <span class="at">x =</span> <span class="st">&quot;Period&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Sales Amount&quot;</span>)</span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a>  </span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a>  <span class="fu">print</span>(p)</span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a>  </span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a>  <span class="co"># Return named list</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a>    <span class="at">total =</span> total_sales,</span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a>    <span class="at">average =</span> avg_sales,</span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a>    <span class="at">best_months =</span> best_months,</span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a>    <span class="at">plot =</span> p</span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a>  ))</span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a>}</span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a></span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co"># Check our improvements</span></span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;moderate&quot;</span>)</span></code></pre></div>
+</div>
+<div id="context-aware-analysis" class="section level2">
+<h2>Context-Aware Analysis</h2>
+<p>goose_honk() understands different types of R code:</p>
+<div id="data-manipulation" class="section level3">
+<h3>Data Manipulation</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># It recognizes dplyr chains</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">filter</span>(x <span class="sc">&gt;</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="fu">group_by</span>(category) <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean =</span> <span class="fu">mean</span>(value))</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="fu">goose_honk</span>()</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co"># &quot;Good use of dplyr! Consider adding .groups = &#39;drop&#39; to summarise() </span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#  to avoid the grouped data frame warning.&quot;</span></span></code></pre></div>
+</div>
+<div id="statistical-models" class="section level3">
+<h3>Statistical Models</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># It understands modeling</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(mpg <span class="sc">~</span> wt <span class="sc">+</span> cyl, <span class="at">data =</span> mtcars)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="fu">goose_honk</span>()</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co"># &quot;Linear model looks good. Have you checked assumptions? </span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#  Consider plot(model) for diagnostics. Also, you might want </span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#  to check for multicollinearity between wt and cyl.&quot;</span></span></code></pre></div>
+</div>
+<div id="visualization" class="section level3">
+<h3>Visualization</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># It recognizes ggplot2</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data, <span class="fu">aes</span>(x, y)) <span class="sc">+</span> <span class="fu">geom_point</span>()</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="fu">goose_honk</span>()</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co"># &quot;Basic scatter plot. Consider adding labels with labs(), </span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#  applying a theme, and perhaps adding a trend line with </span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#  geom_smooth() if appropriate.&quot;</span></span></code></pre></div>
+</div>
+</div>
+<div id="generating-tests" class="section level2">
+<h2>Generating Tests</h2>
+<p>gooseR can generate test suites for your functions:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Your function</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>calculate_bmi <span class="ot">&lt;-</span> <span class="cf">function</span>(weight_kg, height_m) {</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="cf">if</span> (height_m <span class="sc">&lt;=</span> <span class="dv">0</span>) <span class="fu">stop</span>(<span class="st">&quot;Height must be positive&quot;</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="cf">if</span> (weight_kg <span class="sc">&lt;=</span> <span class="dv">0</span>) <span class="fu">stop</span>(<span class="st">&quot;Weight must be positive&quot;</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  </span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  bmi <span class="ot">&lt;-</span> weight_kg <span class="sc">/</span> (height_m <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  </span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  category <span class="ot">&lt;-</span> <span class="cf">if</span> (bmi <span class="sc">&lt;</span> <span class="fl">18.5</span>) <span class="st">&quot;Underweight&quot;</span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> (bmi <span class="sc">&lt;</span> <span class="dv">25</span>) <span class="st">&quot;Normal&quot;</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> (bmi <span class="sc">&lt;</span> <span class="dv">30</span>) <span class="st">&quot;Overweight&quot;</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>  <span class="cf">else</span> <span class="st">&quot;Obese&quot;</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  </span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">bmi =</span> bmi, <span class="at">category =</span> category))</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>}</span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co"># Generate tests</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a>tests <span class="ot">&lt;-</span> <span class="fu">goose_generate_tests</span>(<span class="st">&quot;calculate_bmi&quot;</span>)</span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="fu">cat</span>(tests)</span></code></pre></div>
+<div id="generated-tests" class="section level3">
+<h3>Generated Tests:</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">test_that</span>(<span class="st">&quot;calculate_bmi works correctly&quot;</span>, {</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="co"># Test normal case</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">calculate_bmi</span>(<span class="dv">70</span>, <span class="fl">1.75</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="fu">expect_equal</span>(result<span class="sc">$</span>bmi, <span class="fl">22.86</span>, <span class="at">tolerance =</span> <span class="fl">0.01</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="fu">expect_equal</span>(result<span class="sc">$</span>category, <span class="st">&quot;Normal&quot;</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  </span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="co"># Test edge cases</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  <span class="fu">expect_equal</span>(<span class="fu">calculate_bmi</span>(<span class="dv">50</span>, <span class="fl">1.8</span>)<span class="sc">$</span>category, <span class="st">&quot;Underweight&quot;</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>  <span class="fu">expect_equal</span>(<span class="fu">calculate_bmi</span>(<span class="dv">85</span>, <span class="fl">1.75</span>)<span class="sc">$</span>category, <span class="st">&quot;Overweight&quot;</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>  <span class="fu">expect_equal</span>(<span class="fu">calculate_bmi</span>(<span class="dv">100</span>, <span class="fl">1.7</span>)<span class="sc">$</span>category, <span class="st">&quot;Obese&quot;</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>  </span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>  <span class="co"># Test error conditions</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>  <span class="fu">expect_error</span>(<span class="fu">calculate_bmi</span>(<span class="dv">0</span>, <span class="fl">1.75</span>), <span class="st">&quot;Weight must be positive&quot;</span>)</span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>  <span class="fu">expect_error</span>(<span class="fu">calculate_bmi</span>(<span class="dv">70</span>, <span class="dv">0</span>), <span class="st">&quot;Height must be positive&quot;</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>  <span class="fu">expect_error</span>(<span class="fu">calculate_bmi</span>(<span class="sc">-</span><span class="dv">70</span>, <span class="fl">1.75</span>), <span class="st">&quot;Weight must be positive&quot;</span>)</span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>  </span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a>  <span class="co"># Test boundary conditions</span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a>  result_boundary <span class="ot">&lt;-</span> <span class="fu">calculate_bmi</span>(<span class="fl">56.25</span>, <span class="fl">1.5</span>)  <span class="co"># Exactly BMI = 25</span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a>  <span class="fu">expect_equal</span>(result_boundary<span class="sc">$</span>bmi, <span class="dv">25</span>)</span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>})</span></code></pre></div>
+</div>
+</div>
+<div id="generating-documentation" class="section level2">
+<h2>Generating Documentation</h2>
+<p>Let gooseR write your roxygen2 documentation:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Your function</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>clean_text <span class="ot">&lt;-</span> <span class="cf">function</span>(text, <span class="at">remove_numbers =</span> <span class="cn">FALSE</span>, <span class="at">lowercase =</span> <span class="cn">TRUE</span>) {</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="cf">if</span> (lowercase) text <span class="ot">&lt;-</span> <span class="fu">tolower</span>(text)</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  text <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;[[:punct:]]&quot;</span>, <span class="st">&quot; &quot;</span>, text)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="cf">if</span> (remove_numbers) text <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;[0-9]&quot;</span>, <span class="st">&quot;&quot;</span>, text)</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  text <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">s+&quot;</span>, <span class="st">&quot; &quot;</span>, text)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="fu">trimws</span>(text)</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>}</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co"># Generate documentation</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>docs <span class="ot">&lt;-</span> <span class="fu">goose_document</span>(<span class="st">&quot;clean_text&quot;</span>)</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="fu">cat</span>(docs)</span></code></pre></div>
+<div id="generated-documentation" class="section level3">
+<h3>Generated Documentation:</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co">#&#39; Clean and Preprocess Text Data</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#&#39; Performs text cleaning operations including punctuation removal,</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&#39; case conversion, number removal, and whitespace normalization.</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&#39; @param text Character vector. The text to be cleaned.</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&#39; @param remove_numbers Logical. If TRUE, removes all numeric characters</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&#39;   from the text. Default is FALSE.</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&#39; @param lowercase Logical. If TRUE, converts all text to lowercase.</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&#39;   Default is TRUE.</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&#39; @return Character vector of the same length as input with cleaned text.</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&#39;   Punctuation is replaced with spaces, multiple spaces are collapsed</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&#39;   to single spaces, and leading/trailing whitespace is removed.</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&#39; @examples</span></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="co">#&#39; clean_text(&quot;Hello, World! 123&quot;)</span></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co">#&#39; # [1] &quot;hello world 123&quot;</span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="co">#&#39; </span></span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&#39; clean_text(&quot;Hello, World! 123&quot;, remove_numbers = TRUE)</span></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="co">#&#39; # [1] &quot;hello world&quot;</span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&#39; </span></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="co">#&#39; clean_text(&quot;HELLO WORLD&quot;, lowercase = FALSE)</span></span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co">#&#39; # [1] &quot;HELLO WORLD&quot;</span></span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="co">#&#39;</span></span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&#39; @export</span></span></code></pre></div>
+</div>
+</div>
+<div id="error-explanation-and-fixes" class="section level2">
+<h2>Error Explanation and Fixes</h2>
+<p>When you encounter errors, gooseR can help:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># You get an error</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;myfile.csv&quot;</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> x3, <span class="at">data =</span> data)</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co"># Error: object &#39;y&#39; not found</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co"># Get help</span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>error_help <span class="ot">&lt;-</span> <span class="fu">goose_explain_error</span>()</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="fu">cat</span>(error_help)</span></code></pre></div>
+<div id="error-explanation" class="section level3">
+<h3>Error Explanation:</h3>
+<pre><code>The error &quot;object &#39;y&#39; not found&quot; means the column &#39;y&#39; doesn&#39;t exist in your data frame.
+
+POSSIBLE CAUSES:
+1. Column name mismatch (check names(data))
+2. Column was renamed during import
+3. CSV has different column names than expected
+
+SOLUTIONS:
+# Check column names
+names(data)
+
+# If column exists with different name:
+model &lt;- lm(actual_column_name ~ x1 + x2 + x3, data = data)
+
+# Or rename the column:
+names(data)[names(data) == &quot;old_name&quot;] &lt;- &quot;y&quot;
+
+# Defensive approach:
+if (!&quot;y&quot; %in% names(data)) {
+  stop(&quot;Column &#39;y&#39; not found in data. Available columns: &quot;, 
+       paste(names(data), collapse = &quot;, &quot;))
+}</code></pre>
+</div>
+</div>
+<div id="best-practices-workflow" class="section level2">
+<h2>Best Practices Workflow</h2>
+<p>Here’s a complete development workflow with gooseR:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># 1. Write your function</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>my_function <span class="ot">&lt;-</span> <span class="cf">function</span>(data) {</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="co"># Initial implementation</span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">process_data</span>(data)</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>}</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a><span class="co"># 2. Get initial review</span></span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;gentle&quot;</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="co"># 3. Improve based on feedback</span></span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a>my_function <span class="ot">&lt;-</span> <span class="cf">function</span>(data) {</span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a>  <span class="co"># Improved implementation with error handling</span></span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(data)) <span class="fu">stop</span>(<span class="st">&quot;Data cannot be NULL&quot;</span>)</span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">process_data</span>(data)</span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
+<span id="cb17-17"><a href="#cb17-17" tabindex="-1"></a>}</span>
+<span id="cb17-18"><a href="#cb17-18" tabindex="-1"></a></span>
+<span id="cb17-19"><a href="#cb17-19" tabindex="-1"></a><span class="co"># 4. Get stricter review</span></span>
+<span id="cb17-20"><a href="#cb17-20" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;moderate&quot;</span>)</span>
+<span id="cb17-21"><a href="#cb17-21" tabindex="-1"></a></span>
+<span id="cb17-22"><a href="#cb17-22" tabindex="-1"></a><span class="co"># 5. Generate documentation</span></span>
+<span id="cb17-23"><a href="#cb17-23" tabindex="-1"></a>docs <span class="ot">&lt;-</span> <span class="fu">goose_document</span>(<span class="st">&quot;my_function&quot;</span>)</span>
+<span id="cb17-24"><a href="#cb17-24" tabindex="-1"></a></span>
+<span id="cb17-25"><a href="#cb17-25" tabindex="-1"></a><span class="co"># 6. Generate tests</span></span>
+<span id="cb17-26"><a href="#cb17-26" tabindex="-1"></a>tests <span class="ot">&lt;-</span> <span class="fu">goose_generate_tests</span>(<span class="st">&quot;my_function&quot;</span>)</span>
+<span id="cb17-27"><a href="#cb17-27" tabindex="-1"></a></span>
+<span id="cb17-28"><a href="#cb17-28" tabindex="-1"></a><span class="co"># 7. Final review</span></span>
+<span id="cb17-29"><a href="#cb17-29" tabindex="-1"></a><span class="fu">goose_honk</span>(<span class="at">severity =</span> <span class="st">&quot;harsh&quot;</span>)</span>
+<span id="cb17-30"><a href="#cb17-30" tabindex="-1"></a></span>
+<span id="cb17-31"><a href="#cb17-31" tabindex="-1"></a><span class="co"># 8. Save your work</span></span>
+<span id="cb17-32"><a href="#cb17-32" tabindex="-1"></a><span class="fu">goose_save</span>(my_function, <span class="at">category =</span> <span class="st">&quot;functions&quot;</span>, <span class="at">tags =</span> <span class="fu">c</span>(<span class="st">&quot;reviewed&quot;</span>, <span class="st">&quot;tested&quot;</span>))</span></code></pre></div>
+</div>
+<div id="integration-with-rstudiopositron" class="section level2">
+<h2>Integration with RStudio/Positron</h2>
+<p>Use the addins for quick access:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Quick Review</strong>: Select code and use the “Review Code”
+addin</li>
+<li><strong>Generate Docs</strong>: Place cursor in function and use
+“Document Function” addin</li>
+<li><strong>Explain Error</strong>: When you hit an error, use “Explain
+Last Error” addin</li>
+</ol>
+</div>
+<div id="tips-for-effective-code-review" class="section level2">
+<h2>Tips for Effective Code Review</h2>
+<ol style="list-style-type: decimal">
+<li><strong>Start Gentle</strong>: Begin with gentle reviews to build
+confidence</li>
+<li><strong>Progress Gradually</strong>: Move to harsher reviews as code
+improves</li>
+<li><strong>Focus on Patterns</strong>: goose_honk() identifies
+recurring issues</li>
+<li><strong>Learn from Feedback</strong>: Each review teaches best
+practices</li>
+<li><strong>Review Often</strong>: Regular reviews during development,
+not just at the end</li>
+</ol>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>gooseR’s code review and testing features transform you into a better
+R programmer. The context-aware feedback, automatic test generation, and
+documentation creation save time while improving code quality.</p>
+<p>For more information about gooseR’s capabilities, see the other
+vignettes in the package documentation.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

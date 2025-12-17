@@ -1,0 +1,75 @@
+---
+title: "gooseR Use-Case Demo"
+author: "gooseR Team"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{gooseR Use-Case Demo}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(gooseR)
+library(ggplot2)
+```
+
+# Overview
+This vignette demonstrates three real-world use cases with sample data:
+- People Analytics
+- Sales Analysis
+- Code Review Workflow
+
+## People Analytics
+
+```{r}
+set.seed(123)
+employees <- data.frame(
+  employee_id = sprintf("%06d", 1:500),
+  tenure_years = runif(500, 0, 10),
+  satisfaction = pmax(pmin(rnorm(500, 3.5, 1), 5), 1),
+  performance = sample(1:5, 500, replace = TRUE),
+  department = sample(c("Engineering", "Sales", "HR", "Finance"), 500, replace = TRUE)
+)
+
+ggplot(employees, aes(department, satisfaction, fill = department)) +
+  geom_boxplot(alpha = 0.8) +
+  theme_brand("block") +
+  labs(title = "Employee Satisfaction by Department", x = NULL, y = "Satisfaction (1-5)")
+```
+
+## Sales Analysis
+
+```{r}
+set.seed(456)
+sales <- data.frame(
+  date = seq(as.Date("2024-01-01"), as.Date("2024-12-31"), by = "day"),
+  revenue = pmax(rnorm(366, 10000, 2000), 0),
+  transactions = rpois(366, 50),
+  region = sample(c("North", "South", "East", "West"), 366, replace = TRUE)
+)
+
+# Simple time series plot
+library(dplyr)
+sales_daily <- sales %>% group_by(date) %>% summarise(revenue = sum(revenue))
+
+ggplot(sales_daily, aes(date, revenue)) +
+  geom_line(color = "#0055FF", linewidth = 1) +
+  theme_brand("block") +
+  labs(title = "Daily Revenue", x = NULL, y = "Revenue")
+```
+
+## Code Review Workflow
+
+```{r}
+slow_mean <- function(x) {
+  s <- 0
+  for (i in seq_along(x)) s <- s + x[i]
+  s / length(x)
+}
+fast_mean <- function(x) mean(x)
+
+# Example: generate test code (requires configured Goose CLI)
+# tests <- goose_generate_tests(slow_mean)
+# cat(tests)
+```

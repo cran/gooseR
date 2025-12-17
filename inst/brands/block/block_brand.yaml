@@ -1,0 +1,211 @@
+# Block Brand Configuration
+# Official brand identity for Block Inc.
+# Based on official Block slide templates
+
+brand:
+  name: "Block"
+  version: "2.0.0"
+  description: "Block Inc. official brand identity - minimal black and white design"
+  
+colors:
+  # Core brand colors (minimal palette)
+  primary:
+    black: "#000000"
+    white: "#FFFFFF"
+    
+  # Accent colors (used sparingly)
+  accent:
+    # Primary accent - used for emphasis
+    primary: "#000000"    # Black is the primary accent
+    # Data visualization colors (minimal, muted palette)
+    viz1: "#333333"       # Dark gray
+    viz2: "#666666"       # Medium gray  
+    viz3: "#999999"       # Light gray
+    viz4: "#CCCCCC"       # Very light gray
+    
+  # Semantic colors (minimal use)
+  semantic:
+    text: "#000000"       # Black text (light theme)
+    text_inverse: "#FFFFFF"  # White text (dark theme)
+    background: "#FFFFFF"    # White background (light theme)
+    background_inverse: "#000000"  # Black background (dark theme)
+    
+  # Grayscale palette (for subtle variations)
+  gray:
+    5: "#F5F5F5"    # Almost white
+    10: "#E5E5E5"   # Very light gray
+    20: "#CCCCCC"   # Light gray
+    30: "#B3B3B3"   # Light-medium gray
+    40: "#999999"   # Medium gray
+    50: "#808080"   # True gray
+    60: "#666666"   # Medium-dark gray
+    70: "#4D4D4D"   # Dark gray
+    80: "#333333"   # Very dark gray
+    90: "#1A1A1A"   # Almost black
+    
+typography:
+  # Font families (clean, minimal)
+  fonts:
+    # Inter is Block's primary font - clean, modern, highly readable
+    primary: "Inter"
+    body: "Inter"
+    heading: "Inter"
+    monospace: "'SF Mono', Monaco, 'Courier New', monospace"
+    # Fallback chain for when Inter isn't available
+    fallback: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    
+  # Font sizes (in points)
+  sizes:
+    base: 11
+    h1: 24
+    h2: 18
+    h3: 14
+    h4: 12
+    h5: 11
+    h6: 10
+    body: 11
+    small: 9
+    tiny: 8
+    large: 14
+    xlarge: 18
+    
+  # Font weights (minimal variation)
+  weights:
+    regular: 400
+    medium: 500
+    semibold: 600
+    bold: 700
+    
+  # Line heights
+  line_heights:
+    tight: 1.2
+    normal: 1.5
+    relaxed: 1.6
+    
+spacing:
+  # Base spacing unit (clean, consistent)
+  unit: 8
+  
+  # Spacing scale
+  scale:
+    none: 0
+    xs: 0.25   # 2px
+    sm: 0.5    # 4px
+    md: 1      # 8px
+    lg: 2      # 16px
+    xl: 3      # 24px
+    2xl: 4     # 32px
+    3xl: 6     # 48px
+    
+layout:
+  # Maximum widths
+  max_width:
+    content: 1200
+    text: 720
+    narrow: 480
+    
+  # Border radius (Block uses sharp corners)
+  radius:
+    none: 0
+    sm: 0    # Sharp corners
+    md: 0    # Sharp corners
+    lg: 0    # Sharp corners
+    
+  # Border widths (minimal)
+  borders:
+    none: 0
+    thin: 0.5
+    medium: 1
+    thick: 2
+    
+  # Shadows (none - flat design)
+  shadows:
+    none: "none"
+    
+# Brand themes
+themes:
+  light:
+    name: "Block Light"
+    background: "#FFFFFF"
+    text: "#000000"
+    grid: "#F5F5F5"
+    axis: "#000000"
+    
+  dark:
+    name: "Block Dark"
+    background: "#000000"
+    text: "#FFFFFF"
+    grid: "#1A1A1A"
+    axis: "#FFFFFF"
+    
+# Brand assets
+assets:
+  logos:
+    primary: "block-logo-black.svg"
+    inverse: "block-logo-white.svg"
+    
+# Metadata
+metadata:
+  author: "Block Inc."
+  copyright: "© 2025 Block Inc."
+  website: "https://block.xyz"
+  
+# Plot-specific settings for ggplot2
+plots:
+  # Default dimensions
+  dimensions:
+    width: 7
+    height: 4.5  # Wider aspect ratio
+    dpi: 300
+    
+  # Grid settings (minimal)
+  grid:
+    major: false  # No grid lines for cleaner look
+    minor: false
+    color: "#F5F5F5"
+    
+  # Minimal color palettes for data visualization
+  palettes:
+    # Monochrome palette (preferred)
+    monochrome:
+      - "#000000"  # Black
+      - "#333333"  # Dark gray
+      - "#666666"  # Medium gray
+      - "#999999"  # Light gray
+      - "#CCCCCC"  # Very light gray
+      
+    # Minimal categorical (when color needed)
+    categorical:
+      - "#000000"  # Black
+      - "#666666"  # Gray
+      - "#CCCCCC"  # Light gray
+      
+    # Sequential (grayscale)
+    sequential:
+      - "#F5F5F5"  # Almost white
+      - "#CCCCCC"  # Light gray
+      - "#999999"  # Medium gray
+      - "#666666"  # Dark gray
+      - "#333333"  # Very dark gray
+      - "#000000"  # Black
+      
+# Brand usage guidelines
+guidelines:
+  design_principles:
+    - "Minimal and clean aesthetic"
+    - "Black and white as primary colors"
+    - "No unnecessary decoration"
+    - "Clear hierarchy through size and weight"
+    - "Generous white space"
+    
+  color_usage:
+    - "Black on white for primary content (light theme)"
+    - "White on black for inverted layouts (dark theme)"
+    - "Grayscale for data visualization"
+    - "Avoid color unless absolutely necessary"
+    
+  typography_usage:
+    - "System fonts for clean, consistent rendering"
+    - "Bold for emphasis, not color"
+    - "Clear hierarchy through size"
+    - "Minimal font weights"

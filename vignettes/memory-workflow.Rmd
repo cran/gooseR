@@ -1,0 +1,467 @@
+---
+title: "Memory Management and Workflow Tools"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Memory Management and Workflow Tools}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+```{r setup}
+library(gooseR)
+library(dplyr)
+```
+
+## Introduction
+
+gooseR's memory system revolutionizes how you manage R objects and workflows. Save any R object - data frames, models, lists, plots - and retrieve them instantly, even across sessions. Combined with workflow tools, you can seamlessly continue work across days, hand off projects, and maintain organized research.
+
+## Memory Basics
+
+### Saving Objects
+
+```{r}
+# Save any R object
+my_model <- lm(mpg ~ wt + cyl, data = mtcars)
+
+goose_save(
+  my_model,
+  category = "models",
+  tags = c("mtcars", "regression", "fuel_efficiency")
+)
+
+# Save data frames
+clean_data <- mtcars %>%
+  filter(mpg > 20) %>%
+  select(mpg, wt, cyl, hp)
+
+goose_save(
+  clean_data,
+  category = "datasets",
+  tags = c("filtered", "mtcars", "high_mpg")
+)
+
+# Save multiple objects at once
+results <- list(
+  model = my_model,
+  data = clean_data,
+  summary = summary(my_model)
+)
+
+goose_save(
+  results,
+  category = "analysis",
+  tags = c("complete_analysis", "2024_q4")
+)
+```
+
+### Retrieving Objects
+
+```{r}
+# List what's saved
+goose_list()
+
+# List by category
+goose_list(category = "models")
+
+# List by tags
+goose_list(tags = "mtcars")
+
+# Load an object
+my_saved_model <- goose_load("my_model")
+
+# Load with full metadata
+obj_with_meta <- goose_load("my_model", include_metadata = TRUE)
+print(obj_with_meta$metadata$created_at)
+```
+
+### Organization with Categories and Tags
+
+```{r}
+# Categories: Broad classifications
+# - "models", "datasets", "plots", "reports", "temp"
+
+# Tags: Specific descriptors
+# - "production", "test", "client_a", "2024_q4", "regression"
+
+# Example: Organizing a project
+goose_save(raw_data, category = "datasets", tags = c("raw", "client_a", "2024"))
+goose_save(clean_data, category = "datasets", tags = c("clean", "client_a", "2024"))
+goose_save(model_v1, category = "models", tags = c("v1", "client_a", "baseline"))
+goose_save(model_v2, category = "models", tags = c("v2", "client_a", "improved"))
+goose_save(final_plot, category = "plots", tags = c("final", "client_a", "presentation"))
+```
+
+## Bulk Operations
+
+### Backup and Restore
+
+```{r}
+# Backup everything before major changes
+goose_backup()
+# Creates timestamped backup: backup_20241204_143022
+
+# Work on your analysis...
+# If something goes wrong:
+
+# List available backups
+list.files(path = "~/.config/goose/memory/backups")
+
+# Restore from backup
+goose_restore("backup_20241204_143022")
+```
+
+### Cleaning by Tags
+
+```{r}
+# Remove all test objects
+goose_clear_tags(c("test", "temp"))
+
+# Remove draft versions
+goose_clear_tags("draft")
+
+# Clean up after experimentation
+goose_clear_tags(c("experiment", "sandbox"))
+```
+
+### Session Management
+
+```{r}
+# Work in a temporary session that auto-cleans
+with_goose_session({
+  
+  # Experimental work
+  test_data <- mtcars %>% 
+    mutate(mpg_squared = mpg^2)
+  
+  test_model <- lm(mpg_squared ~ wt + cyl, data = test_data)
+  
+  # Save temporarily
+  goose_save(test_model, category = "session_temp", tags = "experiment")
+  
+  # Do analysis
+  print(summary(test_model))
+  
+}, cleanup = TRUE)  # Everything in session_temp is deleted after
+
+# For persistent session work
+with_goose_session({
+  
+  # Production work
+  final_model <- lm(mpg ~ wt + cyl + hp, data = mtcars)
+  goose_save(final_model, category = "production", tags = "final")
+  
+}, cleanup = FALSE)  # Keeps everything
+```
+
+## Workflow Tools
+
+### Sharing Data Context
+
+```{r}
+# Load your data
+my_data <- read.csv("complex_dataset.csv")
+
+# Share a sample with goose for context
+goose_give_sample(my_data, n = 10)
+
+# Now goose understands your data structure
+advice <- goose_ask("What's the best way to handle the missing values in this dataset?")
+```
+
+### Getting Analysis Plans
+
+```{r}
+# Share your data first
+goose_give_sample(my_data)
+
+# Get an exploratory analysis plan
+exploratory_plan <- goose_make_a_plan("exploratory")
+cat(exploratory_plan)
+
+# Output:
+# Based on your data structure, here's an exploratory analysis plan:
+# 
+# 1. Data Overview
+#    - Check dimensions: 1000 rows × 15 columns
+#    - Examine variable types
+#    - Missing value analysis
+# 
+# 2. Univariate Analysis
+#    - Distribution of continuous variables
+#    - Frequency tables for categorical
+# ...
+
+# Get a predictive modeling plan
+predictive_plan <- goose_make_a_plan("predictive")
+
+# Get a diagnostic plan
+diagnostic_plan <- goose_make_a_plan("diagnostic")
+```
+
+### Creating Handoffs
+
+```{r}
+# After completing analysis
+results <- list(
+  model = final_model,
+  performance = model_metrics,
+  plots = list(residual_plot, prediction_plot)
+)
+
+# Create comprehensive handoff documentation
+handoff <- goose_handoff()
+
+# This generates:
+# - Summary of work completed
+# - Key findings
+# - Code snippets for reproduction
+# - List of saved objects
+# - Next steps recommendations
+
+# Save the handoff
+writeLines(handoff, "project_handoff.md")
+```
+
+### Continuation Prompts
+
+```{r}
+# At the end of your work session
+goose_continuation_prompt()
+
+# This creates a prompt you can use tomorrow:
+# "Continue analysis of customer churn model. Last session:
+#  - Completed data cleaning (saved as 'clean_data')
+#  - Built baseline model (saved as 'baseline_model', AUC=0.72)
+#  - Identified class imbalance issue
+#  Next: Try SMOTE for balancing, feature engineering on date fields"
+
+# Save it
+prompt <- goose_continuation_prompt()
+writeLines(prompt, paste0("continue_", Sys.Date(), ".txt"))
+```
+
+### Session Summaries
+
+```{r}
+# Summarize what you've done
+summary <- goose_summarize_session()
+cat(summary)
+
+# Output:
+# Session Summary - 2024-12-04
+# 
+# Objects Created:
+# - clean_data (datasets): 5000 rows × 12 columns
+# - model_v1 (models): Linear regression, R² = 0.84
+# - model_v2 (models): Random forest, R² = 0.91
+# - comparison_plot (plots): Model comparison visualization
+# 
+# Key Activities:
+# - Data cleaning and preprocessing
+# - Feature engineering (3 new features)
+# - Model comparison (linear vs. tree-based)
+# 
+# Recommendations:
+# - model_v2 shows better performance
+# - Consider ensemble approach
+# - Validate on holdout set
+```
+
+## Real-World Workflow Examples
+
+### Daily Analysis Workflow
+
+```{r}
+# Morning: Continue from yesterday
+yesterday_prompt <- readLines("continue_2024-12-03.txt")
+cat(yesterday_prompt)
+
+# Load saved objects
+my_data <- goose_load("clean_data")
+my_model <- goose_load("baseline_model")
+
+# Work on improvements
+improved_model <- improve_model(my_model, my_data)
+
+# Get feedback
+goose_honk(severity = "moderate")
+
+# Save progress
+goose_save(improved_model, category = "models", tags = c("improved", "day2"))
+
+# End of day
+goose_continuation_prompt()
+goose_summarize_session()
+```
+
+### Team Collaboration Workflow
+
+```{r}
+# Team member A completes initial analysis
+model_a <- build_model(data)
+goose_save(model_a, category = "models", tags = c("team_a", "initial"))
+
+# Create handoff for Team member B
+handoff <- goose_handoff()
+writeLines(handoff, "handoff_to_team_b.md")
+
+# Team member B picks up work
+goose_list(tags = "team_a")
+model_a <- goose_load("model_a")
+
+# Continue work
+model_b <- enhance_model(model_a)
+goose_save(model_b, category = "models", tags = c("team_b", "enhanced"))
+```
+
+### Project Organization Pattern
+
+```{r}
+# Structure for a complete project
+project_setup <- function(project_name) {
+  
+  # Save raw data
+  goose_save(
+    raw_data,
+    category = "data_raw",
+    tags = c(project_name, "raw", Sys.Date())
+  )
+  
+  # Save cleaned data
+  goose_save(
+    clean_data,
+    category = "data_clean",
+    tags = c(project_name, "clean", Sys.Date())
+  )
+  
+  # Save models with versioning
+  goose_save(
+    model_v1,
+    category = "models",
+    tags = c(project_name, "v1", "baseline")
+  )
+  
+  # Save visualizations
+  goose_save(
+    plots,
+    category = "visualizations",
+    tags = c(project_name, "final")
+  )
+  
+  # Save reports
+  goose_save(
+    report,
+    category = "reports",
+    tags = c(project_name, "final", Sys.Date())
+  )
+}
+
+# List everything for a project
+goose_list(tags = project_name)
+```
+
+## Advanced Memory Features
+
+### Memory Statistics
+
+```{r}
+# Get memory usage statistics
+stats <- goose_memory_stats()
+print(stats)
+
+# Output:
+# Memory Statistics:
+# Total objects: 47
+# Total size: 15.3 MB
+# By category:
+#   - models: 12 objects (8.1 MB)
+#   - datasets: 20 objects (5.2 MB)
+#   - plots: 15 objects (2.0 MB)
+```
+
+### Selective Operations
+
+```{r}
+# Delete specific objects
+goose_delete("old_model")
+
+# Delete by pattern
+objects <- goose_list()
+old_objects <- objects %>%
+  filter(grepl("^test_", name))
+
+for(obj in old_objects$name) {
+  goose_delete(obj)
+}
+```
+
+### Export and Import
+
+```{r}
+# Export memory for sharing
+goose_export_memory("project_memory.zip")
+
+# On another machine
+goose_import_memory("project_memory.zip")
+```
+
+## Best Practices
+
+1. **Use Meaningful Names**: `customer_churn_model` not `model1`
+
+2. **Tag Consistently**: Develop a tagging convention
+   - Version tags: "v1", "v2", "final"
+   - Status tags: "draft", "review", "production"
+   - Time tags: "2024_q4", "december"
+
+3. **Regular Backups**: Before major changes or experiments
+
+4. **Clean Regularly**: Remove test and temporary objects
+
+5. **Document with Handoffs**: Create handoffs for future you
+
+6. **Use Sessions for Experiments**: Isolate experimental work
+
+## Troubleshooting
+
+### Issue: Can't Find Saved Object
+
+```{r}
+# Check if it exists
+all_objects <- goose_list()
+grep("my_object", all_objects$name, value = TRUE)
+
+# Check with different category
+goose_list(category = "models")
+
+# Check metadata
+meta <- goose_get_metadata("object_name")
+```
+
+### Issue: Memory Getting Large
+
+```{r}
+# Check what's taking space
+stats <- goose_memory_stats()
+
+# Clean old backups
+goose_clean_backups(keep_last = 3)
+
+# Remove by tags
+goose_clear_tags(c("old", "deprecated", "test"))
+```
+
+## Conclusion
+
+gooseR's memory and workflow tools transform how you work in R. No more losing work, struggling to remember where you left off, or manually managing file versions. The intelligent memory system combined with workflow tools creates a seamless, productive environment for data science.
+
+For more information about gooseR's capabilities, see the other vignettes in the package documentation.

@@ -1,0 +1,189 @@
+# Brand Configuration Template
+# This file defines a complete brand identity for use with gooseR
+# Copy and customize for your organization
+
+brand:
+  name: "Your Brand Name"
+  version: "1.0.0"
+  description: "Brand description"
+  
+colors:
+  # Primary brand colors (required)
+  primary:
+    main: "#000000"      # Main brand color
+    contrast: "#FFFFFF"  # Contrasting color for text on main
+    
+  # Secondary colors (optional)
+  secondary:
+    main: "#666666"
+    light: "#999999"
+    dark: "#333333"
+    
+  # Accent colors for highlights (optional)
+  accent:
+    primary: "#0066CC"
+    secondary: "#FF6600"
+    tertiary: "#00AA88"
+    
+  # Semantic colors for UI elements (recommended)
+  semantic:
+    success: "#00AA88"
+    warning: "#FF9900"
+    error: "#CC0000"
+    info: "#0066CC"
+    
+  # Grayscale palette (recommended)
+  gray:
+    50: "#FAFAFA"
+    100: "#F5F5F5"
+    200: "#EEEEEE"
+    300: "#E0E0E0"
+    400: "#BDBDBD"
+    500: "#9E9E9E"
+    600: "#757575"
+    700: "#616161"
+    800: "#424242"
+    900: "#212121"
+    
+typography:
+  # Font families
+  fonts:
+    heading: "System Font"     # For headings
+    body: "System Font"        # For body text
+    monospace: "Courier New"   # For code
+    
+  # Font sizes (in points for print, pixels for web)
+  sizes:
+    base: 12
+    h1: 28
+    h2: 24
+    h3: 20
+    h4: 16
+    h5: 14
+    h6: 12
+    body: 12
+    small: 10
+    tiny: 8
+    
+  # Font weights
+  weights:
+    thin: 100
+    light: 300
+    regular: 400
+    medium: 500
+    semibold: 600
+    bold: 700
+    black: 900
+    
+  # Line heights (multiplier of font size)
+  line_heights:
+    tight: 1.2
+    normal: 1.5
+    relaxed: 1.8
+    loose: 2.0
+    
+spacing:
+  # Base unit for spacing (in pixels)
+  unit: 8
+  
+  # Spacing scale (multipliers of base unit)
+  scale:
+    none: 0
+    xs: 0.25   # 2px with base 8
+    sm: 0.5    # 4px
+    md: 1      # 8px
+    lg: 1.5    # 12px
+    xl: 2      # 16px
+    2xl: 3     # 24px
+    3xl: 4     # 32px
+    4xl: 6     # 48px
+    5xl: 8     # 64px
+    
+layout:
+  # Maximum content widths
+  max_width:
+    content: 1200
+    text: 720
+    
+  # Border radius values
+  radius:
+    none: 0
+    sm: 2
+    md: 4
+    lg: 8
+    xl: 16
+    full: 9999
+    
+  # Border widths
+  borders:
+    none: 0
+    thin: 1
+    medium: 2
+    thick: 4
+    
+  # Shadows (CSS box-shadow format)
+  shadows:
+    none: "none"
+    sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)"
+    md: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+    lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
+    xl: "0 20px 25px -5px rgba(0, 0, 0, 0.1)"
+    
+# Asset paths (optional)
+assets:
+  logos:
+    primary: "path/to/primary-logo.svg"
+    secondary: "path/to/secondary-logo.svg"
+    icon: "path/to/icon.svg"
+    favicon: "path/to/favicon.ico"
+    
+  # Custom font files
+  fonts:
+    - "path/to/custom-font.woff2"
+    - "path/to/another-font.woff2"
+    
+# Metadata
+metadata:
+  author: "Your Organization"
+  copyright: "© 2025 Your Organization"
+  website: "https://example.com"
+  license: "MIT"
+  
+# Plot-specific settings for ggplot2
+plots:
+  # Default plot dimensions
+  dimensions:
+    width: 7
+    height: 5
+    dpi: 300
+    
+  # Grid and axis settings
+  grid:
+    major: true
+    minor: false
+    color: "#E0E0E0"
+    
+  # Default color palettes for data visualization
+  palettes:
+    categorical:
+      - "#0066CC"
+      - "#FF6600"
+      - "#00AA88"
+      - "#9933CC"
+      - "#FF3366"
+      - "#00CCCC"
+    sequential:
+      - "#E6F3FF"
+      - "#B3D9FF"
+      - "#66B2FF"
+      - "#1A8CFF"
+      - "#0066CC"
+      - "#004C99"
+    diverging:
+      - "#CC0000"
+      - "#FF6666"
+      - "#FFCCCC"
+      - "#F0F0F0"
+      - "#CCE6FF"
+      - "#6699FF"
+      - "#0066CC"

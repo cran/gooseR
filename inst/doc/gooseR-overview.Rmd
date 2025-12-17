@@ -1,0 +1,30 @@
+---
+title: "gooseR: R + Goose AI Integration"
+author: "gooseR Team"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{gooseR: R + Goose AI Integration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+# Overview
+
+This vignette provides a user-focused overview of gooseR's core capabilities: memory integration, branding, AI assistant, advanced features, and IDE addins.
+
+## Quick Start
+
+```{r}
+library(gooseR)
+# goose_ask("Summarize this dataset and suggest visuals")
+```
+
+## Next steps
+- See README for installation
+- Explore inst/examples for runnable demos
+- Visit docs/ for detailed guides
+```
