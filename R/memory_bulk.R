@@ -80,8 +80,13 @@ goose_clear_tags <- function(tags, confirm = TRUE, verbose = TRUE) {
   # Get all items with any of the specified tags
   all_items <- data.frame()
   for (tag in tags) {
-    items <- goose_list(tags = tag)
-    if (nrow(items) > 0) {
+    items <- tryCatch({
+      goose_list(tags = tag)
+    }, error = function(e) {
+      data.frame()
+    })
+    
+    if (!is.null(items) && nrow(items) > 0) {
       all_items <- rbind(all_items, items)
     }
   }
@@ -93,14 +98,14 @@ goose_clear_tags <- function(tags, confirm = TRUE, verbose = TRUE) {
   
   if (nrow(all_items) == 0) {
     if (verbose) {
-      cli::cli_alert_info("No items found with tag{?s}: {tags}")
+      cli::cli_alert_info("No items found with tag{?s}: {paste(tags, collapse = ', ')}")
     }
     return(invisible(0))
   }
   
   if (confirm) {
     cli::cli_alert_warning(
-      "About to delete {nrow(all_items)} item{?s} with tag{?s}: {tags}"
+      "About to delete {nrow(all_items)} item{?s} with tag{?s}: {paste(tags, collapse = ', ')}"
     )
     response <- readline("Type 'yes' to confirm: ")
     if (tolower(response) != "yes") {
@@ -209,7 +214,7 @@ goose_clear_all <- function(confirm = TRUE, backup_first = FALSE,
 #' Check if an item exists in gooseR memory
 #'
 #' @param name Character string, name of the item
-#' @param category Character string, category of the item
+#' @param category Character string, category of the item (optional)
 #'
 #' @return Logical, TRUE if item exists
 #' @export
@@ -220,11 +225,15 @@ goose_clear_all <- function(confirm = TRUE, backup_first = FALSE,
 #'   data <- goose_load("my_data", "analysis")
 #' }
 #' }
-goose_exists <- function(name, category = "general") {
+goose_exists <- function(name, category = NULL) {
   items <- tryCatch({
-    goose_list(category = category)
+    if (is.null(category)) {
+      goose_list()  # Search all categories
+    } else {
+      goose_list(category = category)
+    }
   }, error = function(e) {
-    return(NULL)
+    return(data.frame())
   })
   
   # Handle NULL or empty result
@@ -232,7 +241,12 @@ goose_exists <- function(name, category = "general") {
     return(FALSE)
   }
   
-  name %in% items$name
+  # Check if name exists, optionally filtering by category
+  if (is.null(category)) {
+    name %in% items$name
+  } else {
+    any(items$name == name & items$category == category)
+  }
 }
 
 #' Rename an item in gooseR memory
@@ -409,14 +423,19 @@ goose_session_list <- function() {
   }
   
   session_tag <- .goose_session$id
-  items <- goose_list(tags = session_tag)
+  items <- tryCatch({
+    goose_list(tags = session_tag)
+  }, error = function(e) {
+    data.frame()
+  })
   
-  if (nrow(items) > 0) {
-    cli::cli_alert_info("Session '{(.goose_session$id)}' has {nrow(items)} item{?s}")
-  } else {
+  # Handle NULL or empty result
+  if (is.null(items) || nrow(items) == 0) {
     cli::cli_alert_info("No items saved in current session")
+    return(data.frame())
   }
   
+  cli::cli_alert_info("Session '{(.goose_session$id)}' has {nrow(items)} item{?s}")
   items
 }
 

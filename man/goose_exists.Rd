@@ -4,12 +4,12 @@
 \alias{goose_exists}
 \title{Check if an item exists in gooseR memory}
 \usage{
-goose_exists(name, category = "general")
+goose_exists(name, category = NULL)
 }
 \arguments{
 \item{name}{Character string, name of the item}
 
-\item{category}{Character string, category of the item}
+\item{category}{Character string, category of the item (optional)}
 }
 \value{
 Logical, TRUE if item exists

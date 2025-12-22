@@ -1,6 +1,7 @@
 #' Streaming Response Module for GooseR
 #'
 #' Provides real-time streaming responses from Goose AI
+#' @name goose_streaming
 #' @importFrom processx process
 #' @importFrom jsonlite fromJSON
 #' @importFrom R6 R6Class

@@ -2,7 +2,7 @@
 % Please edit documentation in R/async.R
 \name{goose_async}
 \alias{goose_async}
-\title{Execute Query Asynchronously}
+\title{Async and Parallel Execution Module for GooseR}
 \usage{
 goose_async(query, session_id = NULL)
 }
@@ -15,6 +15,8 @@ goose_async(query, session_id = NULL)
 A promise that resolves to the response
 }
 \description{
+Provides asynchronous and parallel query execution
+
 Run a query in the background and return a promise
 }
 \examples{

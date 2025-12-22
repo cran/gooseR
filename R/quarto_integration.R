@@ -1,6 +1,7 @@
 #' Quarto and RMarkdown Integration for GooseR
 #'
 #' AI-powered chunks and document generation
+#' @name goose_quarto
 #' @importFrom knitr knit_engines
 NULL
 

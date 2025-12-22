@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](#)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CRAN Status](https://img.shields.io/badge/CRAN-pending-orange.svg)](#)
+[![CRAN Status](https://img.shields.io/badge/CRAN-accepted-brightgreen.svg)](https://cran.r-project.org/package=gooseR)
 
 gooseR brings goose AI into R. It's a comprehensive, intelligent R development assistant powered by the goose CLI.
 
@@ -62,7 +62,10 @@ goose is your friendly AI partner who can understand what you want to do and hel
 ## Installation
 
 ```r
-# Install from GitHub (soon on CRAN!)
+# 🎉 NOW AVAILABLE ON CRAN!
+install.packages("gooseR")
+
+# Or install development version from GitHub
 # install.packages("remotes")
 remotes::install_github("blockbtheriault/gooseR")
 ```

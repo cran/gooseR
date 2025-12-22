@@ -1,6 +1,7 @@
 #' Response Caching Module for GooseR
 #'
 #' Provides intelligent caching of AI responses for performance
+#' @name goose_cache
 #' @importFrom DBI dbConnect dbExecute dbGetQuery dbDisconnect
 #' @seealso Requires Suggests: RSQLite. Functions in this module check for RSQLite availability at runtime.
 #' @importFrom digest digest

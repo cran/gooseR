@@ -1,9 +1,7 @@
-#' @importFrom promises %...%
-#' @importFrom promises `%...>%`
-
 #' Async and Parallel Execution Module for GooseR
 #'
 #' Provides asynchronous and parallel query execution
+#' @name goose_async
 #' @importFrom future future plan multisession sequential
 #' @importFrom promises promise as.promise promise_race
 #' @importFrom future.apply future_lapply
@@ -385,5 +383,3 @@ goose_async_retry <- function(query, max_retries = 3, retry_delay = 2) {
     }
   }
 }
-
-#' @importFrom promises 

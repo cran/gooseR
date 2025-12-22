@@ -1,15 +1,14 @@
 #' RStudio/Positron Addins for GooseR
+#' 
+#' Interactive UI components for IDE integration
+#' @name goose_addins
 #' @import shiny
 #' @import miniUI
 #' @importFrom shiny reactive reactiveVal reactiveValues observe observeEvent req
 #' @importFrom shiny insertUI removeUI stopApp renderPrint verbatimTextOutput
 #' @importFrom shiny hr icon uiOutput tagList modalButton modalDialog titlePanel
 #' @importFrom shiny updateTextInput
-#' @importFrom miniUI dialogViewer runGadget
-
-
-#'
-#' Interactive UI components for IDE integration
+#' @importFrom miniUI dialogViewer runGadget miniPage gadgetTitleBar miniContentPanel miniTitleBarButton miniButtonBlock
 #' @importFrom shiny shinyApp fluidPage sidebarLayout sidebarPanel mainPanel
 #' @importFrom shiny textInput actionButton textAreaInput selectInput
 #' @importFrom shiny renderText renderUI observeEvent reactive
