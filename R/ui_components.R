@@ -13,7 +13,7 @@
 #' @importFrom shiny dataTableOutput renderDataTable
 #' @importFrom shiny plotOutput renderPlot
 #' @importFrom shiny downloadHandler downloadButton
-#' @importFrom miniUI dialogViewer runGadget
+#' @importFrom shiny dialogViewer runGadget
 #' @importFrom graphics par hist
 #' @importFrom grDevices col2rgb rgb
 #' @importFrom utils capture.output object.size str

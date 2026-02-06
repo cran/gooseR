@@ -4,7 +4,14 @@
 \alias{goose_recipe}
 \title{Execute Goose Recipe}
 \usage{
-goose_recipe(recipe, params = list(), explain = FALSE, render = FALSE)
+goose_recipe(
+  recipe,
+  params = list(),
+  explain = FALSE,
+  render = FALSE,
+  timeout = getOption("goose.timeout", 300),
+  retries = getOption("goose.retries", 1)
+)
 }
 \arguments{
 \item{recipe}{Character, recipe name or path to recipe file}
@@ -14,6 +21,12 @@ goose_recipe(recipe, params = list(), explain = FALSE, render = FALSE)
 \item{explain}{Logical, show recipe explanation instead of running}
 
 \item{render}{Logical, render recipe instead of running}
+
+\item{timeout}{Numeric, timeout in seconds (default uses \code{getOption('goose.timeout', 300)}).
+Set to \code{Inf} for no timeout.}
+
+\item{retries}{Integer, number of retries after the first attempt (default uses
+\code{getOption('goose.retries', 1)}). Retries only occur for timeout/transient errors.}
 }
 \value{
 Recipe output or explanation

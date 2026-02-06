@@ -4,6 +4,11 @@
 \alias{StreamSession}
 \title{Stream Session R6 Class}
 \description{
+Stream Session R6 Class
+
+Stream Session R6 Class
+}
+\details{
 Manages a persistent streaming session
 }
 \section{Public fields}{
@@ -84,10 +89,15 @@ Close session
 \if{html}{\out{<a id="method-StreamSession-close"></a>}}
 \if{latex}{\out{\hypertarget{method-StreamSession-close}{}}}
 \subsection{Method \code{close()}}{
+Mark session inactive (client-side). This does not remove any
+server-side Goose session.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{StreamSession$close()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+Invisible NULL
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-StreamSession-clone"></a>}}

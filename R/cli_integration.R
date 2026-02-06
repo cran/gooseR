@@ -127,10 +127,7 @@ goose_get_config <- function() {
 #' @return Logical, TRUE if Goose CLI is installed
 #' @export
 goose_check_installation <- function() {
-  result <- suppressWarnings(
-    system2("which", "goose", stdout = TRUE, stderr = FALSE)
-  )
-  length(result) > 0 && nchar(result[1]) > 0
+  nzchar(Sys.which("goose"))
 }
 
 #' Get Goose CLI Version
@@ -141,14 +138,14 @@ goose_version <- function() {
   if (!goose_check_installation()) {
     return(NULL)
   }
-  
-  result <- system2("goose", "--version", stdout = TRUE, stderr = FALSE)
-  if (length(result) > 0) {
-    # Extract version number
-    trimws(result[1])
-  } else {
-    NULL
+
+  res <- .goose_cli_run(args = c("--version"), timeout = 10, retries = 0, quiet = TRUE)
+  if (!identical(as.integer(res$status), 0L)) {
+    return(NULL)
   }
+
+  out <- paste(res$stdout, collapse = "\n")
+  if (nchar(out) > 0) trimws(strsplit(out, "\n", fixed = TRUE)[[1]][1]) else NULL
 }
 
 #' Test if Goose CLI is Working
@@ -158,6 +155,8 @@ goose_version <- function() {
 #' but don't need to provide API keys in R.
 #'
 #' @param verbose Logical, whether to print status messages
+#' @param timeout Numeric, timeout in seconds for the test query (default 60).
+#'   Increase this if authentication prompts require more time.
 #'
 #' @return Logical, TRUE if CLI works, FALSE otherwise
 #' @export
@@ -172,8 +171,11 @@ goose_version <- function() {
 #'   # May need configuration
 #'   goose_configure(provider = "openai", model = "gpt-4", api_key = "key")
 #' }
+#' 
+#' # Allow more time for authentication
+#' goose_test_cli(timeout = 120)
 #' }
-goose_test_cli <- function(verbose = TRUE) {
+goose_test_cli <- function(verbose = TRUE, timeout = 60) {
   
   # First check if CLI is installed
   if (!goose_check_installation()) {
@@ -193,15 +195,20 @@ goose_test_cli <- function(verbose = TRUE) {
   
   if (verbose) {
     message("[CLI] Testing CLI connection...")
+    message("   (timeout: ", timeout, "s - if authentication is needed, enter credentials now)")
   }
-  
+
   result <- tryCatch({
-    system2("goose", 
-            args = c("run", "--text", shQuote(test_query), 
-                    "--no-session", "--quiet"),
-            stdout = TRUE,
-            stderr = TRUE,
-            timeout = 10)
+    res <- .goose_cli_run(
+      args = c("run", "--text", test_query, "--no-session", "--quiet"),
+      timeout = timeout,
+      retries = 0,
+      quiet = !isTRUE(verbose)
+    )
+    if (!identical(as.integer(res$status), 0L)) {
+      return(NULL)
+    }
+    strsplit(paste(res$stdout, collapse = "\n"), "\n", fixed = TRUE)[[1]]
   }, error = function(e) {
     return(NULL)
   }, warning = function(w) {
@@ -277,10 +284,16 @@ goose_test_cli <- function(verbose = TRUE) {
 #' @param params Named list of parameters to pass to recipe
 #' @param explain Logical, show recipe explanation instead of running
 #' @param render Logical, render recipe instead of running
+#' @param timeout Numeric, timeout in seconds (default uses `getOption('goose.timeout', 300)`).
+#'   Set to `Inf` for no timeout.
+#' @param retries Integer, number of retries after the first attempt (default uses
+#'   `getOption('goose.retries', 1)`). Retries only occur for timeout/transient errors.
 #'
 #' @return Recipe output or explanation
 #' @export
-goose_recipe <- function(recipe, params = list(), explain = FALSE, render = FALSE) {
+goose_recipe <- function(recipe, params = list(), explain = FALSE, render = FALSE,
+                        timeout = getOption("goose.timeout", 300),
+                        retries = getOption("goose.retries", 1)) {
   
   if (!goose_check_installation()) {
     stop("Goose CLI not found")
@@ -305,9 +318,12 @@ goose_recipe <- function(recipe, params = list(), explain = FALSE, render = FALS
     args <- c(args, "--render-recipe")
   }
   
-  # Execute
-  result <- system2("goose", args = args, stdout = TRUE, stderr = FALSE)
-  paste(result, collapse = "\n")
+  res <- .goose_cli_run(args = args, timeout = timeout, retries = retries, quiet = TRUE)
+  if (!identical(as.integer(res$status), 0L)) {
+    stop("Goose CLI error (status=", res$status, "): ", paste(res$stderr, collapse = "\n"))
+  }
+
+  paste(res$stdout, collapse = "\n")
 }
 
 #' Create or Resume Goose Session
@@ -317,12 +333,18 @@ goose_recipe <- function(recipe, params = list(), explain = FALSE, render = FALS
 #' @param action Character, one of "create", "resume", "list", "remove"
 #' @param name Optional session name
 #' @param session_id Optional session ID
+#' @param timeout Numeric, timeout in seconds (default uses `getOption('goose.timeout', 300)`).
+#'   Set to `Inf` for no timeout.
+#' @param retries Integer, number of retries after the first attempt (default uses
+#'   `getOption('goose.retries', 1)`). Retries only occur for timeout/transient errors.
 #'
 #' @return Session information or query result
 #' @export
 goose_session <- function(action = c("create", "resume", "list", "remove"),
                          name = NULL,
-                         session_id = NULL) {
+                         session_id = NULL,
+                         timeout = getOption("goose.timeout", 300),
+                         retries = getOption("goose.retries", 1)) {
   
   action <- match.arg(action)
   
@@ -338,7 +360,11 @@ goose_session <- function(action = c("create", "resume", "list", "remove"),
     }
     args <- c(args, "--no-interactive")  # Non-interactive mode
     
-    result <- system2("goose", args = args, stdout = TRUE, stderr = FALSE)
+    res <- .goose_cli_run(args = args, timeout = timeout, retries = retries, quiet = TRUE)
+    if (!identical(as.integer(res$status), 0L)) {
+      stop("Goose CLI error (status=", res$status, "): ", paste(res$stderr, collapse = "\n"))
+    }
+    result <- strsplit(paste(res$stdout, collapse = "\n"), "\n", fixed = TRUE)[[1]]
     
     # Extract session ID from output
     session_info <- list(
@@ -352,7 +378,11 @@ goose_session <- function(action = c("create", "resume", "list", "remove"),
     
   } else if (action == "list") {
     # List sessions
-    result <- system2("goose", c("session", "list"), stdout = TRUE, stderr = FALSE)
+    res <- .goose_cli_run(args = c("session", "list"), timeout = timeout, retries = retries, quiet = TRUE)
+    if (!identical(as.integer(res$status), 0L)) {
+      stop("Goose CLI error (status=", res$status, "): ", paste(res$stderr, collapse = "\n"))
+    }
+    result <- strsplit(paste(res$stdout, collapse = "\n"), "\n", fixed = TRUE)[[1]]
     parse_session_list(result)
     
   } else if (action == "resume") {
@@ -368,7 +398,10 @@ goose_session <- function(action = c("create", "resume", "list", "remove"),
       args <- c(args, "--name", name)
     }
     
-    result <- system2("goose", args = args, stdout = TRUE, stderr = FALSE)
+    res <- .goose_cli_run(args = args, timeout = timeout, retries = retries, quiet = TRUE)
+    if (!identical(as.integer(res$status), 0L)) {
+      stop("Goose CLI error (status=", res$status, "): ", paste(res$stderr, collapse = "\n"))
+    }
     message("Session resumed: ", session_id %||% name)
     invisible(TRUE)
     
@@ -383,7 +416,10 @@ goose_session <- function(action = c("create", "resume", "list", "remove"),
       args <- c(args, session_id)
     }
     
-    result <- system2("goose", args = args, stdout = TRUE, stderr = FALSE)
+    res <- .goose_cli_run(args = args, timeout = timeout, retries = retries, quiet = TRUE)
+    if (!identical(as.integer(res$status), 0L)) {
+      stop("Goose CLI error (status=", res$status, "): ", paste(res$stderr, collapse = "\n"))
+    }
     message("Session removed")
     invisible(TRUE)
   }

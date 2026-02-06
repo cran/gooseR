@@ -17,6 +17,11 @@ NULL
 #' @param error_callback Function to call on error
 #' @param complete_callback Function to call on completion
 #' @param session_id Optional session ID for context
+#' @param max_time Numeric, maximum runtime in seconds for the stream (default uses
+#'   `getOption('goose.stream_timeout', Inf)`). Set to `Inf` for no limit.
+#' @param idle_timeout Numeric, maximum time in seconds without receiving any output
+#'   before aborting the stream (default uses `getOption('goose.stream_idle_timeout', Inf)`).
+#'   Set to `Inf` for no limit.
 #' @return Invisible NULL (results handled via callbacks)
 #' @export
 #' @examples
@@ -34,7 +39,9 @@ goose_stream <- function(query,
                         callback = NULL,
                         error_callback = NULL,
                         complete_callback = NULL,
-                        session_id = NULL) {
+                        session_id = NULL,
+                        max_time = getOption("goose.stream_timeout", Inf),
+                        idle_timeout = getOption("goose.stream_idle_timeout", Inf)) {
   
   # Default callbacks
   if (is.null(callback)) {
@@ -55,7 +62,7 @@ goose_stream <- function(query,
   )
   
   # Start streaming process
-  handler$start(query, session_id)
+  handler$start(query, session_id, max_time = max_time, idle_timeout = idle_timeout)
   
   invisible(NULL)
 }
@@ -77,6 +84,10 @@ StreamHandler <- R6::R6Class(
     error_callback = NULL,
     #' @field complete_callback Completion callback function
     complete_callback = NULL,
+    #' @field max_time Maximum runtime in seconds (Inf = no limit)
+    max_time = Inf,
+    #' @field idle_timeout Maximum time in seconds without output (Inf = no limit)
+    idle_timeout = Inf,
     
     #' Initialize stream handler
     #' @param callback Function to call with chunks
@@ -91,7 +102,12 @@ StreamHandler <- R6::R6Class(
     #' Start streaming process
     #' @param query The query to execute
     #' @param session_id Optional session ID
-    start = function(query, session_id = NULL) {
+    #' @param max_time Numeric, maximum runtime in seconds (Inf = no limit)
+    #' @param idle_timeout Numeric, maximum time in seconds without output (Inf = no limit)
+    start = function(query, session_id = NULL, max_time = Inf, idle_timeout = Inf) {
+      self$max_time <- max_time
+      self$idle_timeout <- idle_timeout
+
       # Build command with streaming flag
       cmd_args <- c("--stream", "--query", query)
       if (!is.null(session_id)) {
@@ -112,12 +128,32 @@ StreamHandler <- R6::R6Class(
     },
     
     #' Monitor streaming process
+    #' @description Internal loop that reads stdout/stderr, parses chunks, and enforces
+    #'   `max_time` / `idle_timeout`.
     monitor = function() {
+      start_time <- Sys.time()
+      last_output_time <- Sys.time()
+
       while (self$process$is_alive()) {
+        now <- Sys.time()
+
+        if (is.finite(self$max_time) && as.numeric(difftime(now, start_time, units = "secs")) > self$max_time) {
+          self$process$kill()
+          self$error_callback(paste0("Stream exceeded max_time=", self$max_time, " seconds"))
+          break
+        }
+
+        if (is.finite(self$idle_timeout) && as.numeric(difftime(now, last_output_time, units = "secs")) > self$idle_timeout) {
+          self$process$kill()
+          self$error_callback(paste0("Stream exceeded idle_timeout=", self$idle_timeout, " seconds"))
+          break
+        }
+
         # Check for output (no timeout parameter needed)
         output <- self$process$read_output_lines()
         
         if (length(output) > 0) {
+          last_output_time <- Sys.time()
           for (line in output) {
             # Parse streaming JSON chunks
             tryCatch({
@@ -155,6 +191,7 @@ StreamHandler <- R6::R6Class(
     },
     
     #' Stop streaming
+    #' @description Kill the underlying streaming process if it is still running.
     stop = function() {
       if (!is.null(self$process) && self$process$is_alive()) {
         self$process$kill()
@@ -307,6 +344,9 @@ StreamSession <- R6::R6Class(
     },
     
     #' Close session
+    #' @description Mark session inactive (client-side). This does not remove any
+    #'   server-side Goose session.
+    #' @return Invisible NULL
     close = function() {
       self$active <- FALSE
       message("Stream session closed: ", self$session_id)

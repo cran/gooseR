@@ -4,12 +4,12 @@
 \alias{goose_async_timeout}
 \title{Async Query with Timeout}
 \usage{
-goose_async_timeout(query, timeout = 30)
+goose_async_timeout(query, timeout = getOption("goose.timeout", 300))
 }
 \arguments{
 \item{query}{The query to execute}
 
-\item{timeout}{Timeout in seconds}
+\item{timeout}{Timeout in seconds (default from goose.timeout option, or 300)}
 }
 \value{
 Response or timeout error

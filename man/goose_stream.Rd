@@ -9,7 +9,9 @@ goose_stream(
   callback = NULL,
   error_callback = NULL,
   complete_callback = NULL,
-  session_id = NULL
+  session_id = NULL,
+  max_time = getOption("goose.stream_timeout", Inf),
+  idle_timeout = getOption("goose.stream_idle_timeout", Inf)
 )
 }
 \arguments{
@@ -22,6 +24,13 @@ goose_stream(
 \item{complete_callback}{Function to call on completion}
 
 \item{session_id}{Optional session ID for context}
+
+\item{max_time}{Numeric, maximum runtime in seconds for the stream (default uses
+\code{getOption('goose.stream_timeout', Inf)}). Set to \code{Inf} for no limit.}
+
+\item{idle_timeout}{Numeric, maximum time in seconds without receiving any output
+before aborting the stream (default uses \code{getOption('goose.stream_idle_timeout', Inf)}).
+Set to \code{Inf} for no limit.}
 }
 \value{
 Invisible NULL (results handled via callbacks)

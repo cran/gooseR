@@ -9,7 +9,8 @@ goose_ask(
   format = getOption("goose.auto_format", TRUE),
   output_format = c("text", "json"),
   quiet = TRUE,
-  timeout = 30,
+  timeout = getOption("goose.timeout", 300),
+  retries = getOption("goose.retries", 1),
   session_id = NULL,
   width = getOption("goose.format_width", 80),
   color = getOption("goose.format_color", TRUE),
@@ -25,7 +26,11 @@ goose_ask(
 
 \item{quiet}{Logical, suppress status messages}
 
-\item{timeout}{Numeric, timeout in seconds (default 30)}
+\item{timeout}{Numeric, timeout in seconds (default 300, i.e., 5 minutes).
+Complex queries may take longer. Set to Inf for no timeout.}
+
+\item{retries}{Integer, number of retries after the first attempt (default uses
+\code{getOption('goose.retries', 1)}). Retries only occur for timeout/transient errors.}
 
 \item{session_id}{Optional session ID for context preservation}
 
@@ -56,5 +61,8 @@ data <- goose_ask("List 5 R packages", output_format = "json")
 
 # Customize formatting
 goose_ask("Explain ggplot2", width = 100, color = FALSE)
+
+# For very complex queries, increase timeout
+goose_ask("Write a complete Shiny app", timeout = 600)
 }
 }

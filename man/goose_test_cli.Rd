@@ -4,10 +4,13 @@
 \alias{goose_test_cli}
 \title{Test if Goose CLI is Working}
 \usage{
-goose_test_cli(verbose = TRUE)
+goose_test_cli(verbose = TRUE, timeout = 60)
 }
 \arguments{
 \item{verbose}{Logical, whether to print status messages}
+
+\item{timeout}{Numeric, timeout in seconds for the test query (default 60).
+Increase this if authentication prompts require more time.}
 }
 \value{
 Logical, TRUE if CLI works, FALSE otherwise
@@ -27,5 +30,8 @@ if (goose_test_cli()) {
   # May need configuration
   goose_configure(provider = "openai", model = "gpt-4", api_key = "key")
 }
+
+# Allow more time for authentication
+goose_test_cli(timeout = 120)
 }
 }

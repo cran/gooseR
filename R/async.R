@@ -206,10 +206,10 @@ goose_mapreduce <- function(data, map_query, reduce_query, max_workers = 4) {
 #'
 #' Execute query with timeout protection
 #' @param query The query to execute
-#' @param timeout Timeout in seconds
+#' @param timeout Timeout in seconds (default from goose.timeout option, or 300)
 #' @return Response or timeout error
 #' @export
-goose_async_timeout <- function(query, timeout = 30) {
+goose_async_timeout <- function(query, timeout = getOption("goose.timeout", 300)) {
   future::future({
     goose_ask(query)
   }, globals = TRUE) %>%
@@ -334,12 +334,16 @@ WorkerPool <- R6::R6Class(
     },
     
     #' Clear queue
+    #' @description Remove all queued items without processing them.
+    #' @return Invisible self
     clear_queue = function() {
       self$queue <- list()
       message("Queue cleared")
     },
-    
+
     #' Shutdown pool
+    #' @description Shut down the worker pool and reset the future plan to sequential.
+    #' @return Invisible self
     shutdown = function() {
       future::plan(future::sequential)
       self$active <- FALSE

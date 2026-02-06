@@ -7,7 +7,9 @@
 goose_session(
   action = c("create", "resume", "list", "remove"),
   name = NULL,
-  session_id = NULL
+  session_id = NULL,
+  timeout = getOption("goose.timeout", 300),
+  retries = getOption("goose.retries", 1)
 )
 }
 \arguments{
@@ -16,6 +18,12 @@ goose_session(
 \item{name}{Optional session name}
 
 \item{session_id}{Optional session ID}
+
+\item{timeout}{Numeric, timeout in seconds (default uses \code{getOption('goose.timeout', 300)}).
+Set to \code{Inf} for no timeout.}
+
+\item{retries}{Integer, number of retries after the first attempt (default uses
+\code{getOption('goose.retries', 1)}). Retries only occur for timeout/transient errors.}
 }
 \value{
 Session information or query result

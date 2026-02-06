@@ -8,7 +8,8 @@
 #' @importFrom shiny insertUI removeUI stopApp renderPrint verbatimTextOutput
 #' @importFrom shiny hr icon uiOutput tagList modalButton modalDialog titlePanel
 #' @importFrom shiny updateTextInput
-#' @importFrom miniUI dialogViewer runGadget miniPage gadgetTitleBar miniContentPanel miniTitleBarButton miniButtonBlock
+#' @importFrom shiny dialogViewer runGadget
+#' @importFrom miniUI miniPage gadgetTitleBar miniContentPanel miniTitleBarButton miniButtonBlock
 #' @importFrom shiny shinyApp fluidPage sidebarLayout sidebarPanel mainPanel
 #' @importFrom shiny textInput actionButton textAreaInput selectInput
 #' @importFrom shiny renderText renderUI observeEvent reactive

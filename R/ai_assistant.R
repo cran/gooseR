@@ -68,7 +68,7 @@ goose_review_code <- function(code,
   }
   
   # Get AI response
-  response <- goose_ask(prompt, output_format = "text", timeout = 60)
+  response <- goose_ask(prompt, output_format = "text", timeout = getOption("goose.timeout", 300))
   
   # Parse response into structured format
   review <- parse_code_review(response)
@@ -211,7 +211,7 @@ goose_explain_error <- function(error = NULL, code = NULL, context = NULL) {
                   "5. How to prevent this error in the future")
   
   # Get AI response
-  response <- goose_ask(prompt, output_format = "text", timeout = 45)
+  response <- goose_ask(prompt, output_format = "text", timeout = getOption("goose.timeout", 300))
   
   # Structure the response
   explanation <- list(
@@ -332,7 +332,7 @@ goose_optimize_plot <- function(plot_code,
                   "5. Accessibility considerations")
   
   # Get response
-  response <- goose_ask(prompt, output_format = "text", timeout = 45)
+  response <- goose_ask(prompt, output_format = "text", timeout = getOption("goose.timeout", 300))
   
   # Extract optimized code
   optimized_code <- extract_r_code(response)

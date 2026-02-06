@@ -4,6 +4,11 @@
 \alias{WorkerPool}
 \title{Worker Pool R6 Class}
 \description{
+Worker Pool R6 Class
+
+Worker Pool R6 Class
+}
+\details{
 Manages a pool of async workers
 }
 \section{Public fields}{
@@ -99,26 +104,34 @@ Get results
 \subsection{Returns}{
 Results list
 Clear queue
-Shutdown pool
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-WorkerPool-clear_queue"></a>}}
 \if{latex}{\out{\hypertarget{method-WorkerPool-clear_queue}{}}}
 \subsection{Method \code{clear_queue()}}{
+Remove all queued items without processing them.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{WorkerPool$clear_queue()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+Invisible self
+Shutdown pool
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-WorkerPool-shutdown"></a>}}
 \if{latex}{\out{\hypertarget{method-WorkerPool-shutdown}{}}}
 \subsection{Method \code{shutdown()}}{
+Shut down the worker pool and reset the future plan to sequential.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{WorkerPool$shutdown()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+Invisible self
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-WorkerPool-clone"></a>}}

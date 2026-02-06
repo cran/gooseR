@@ -830,7 +830,7 @@ goose_create_brand_ai <- function(brand_name,
       "Provide hex codes and explain the rationale."
     )
     
-    color_response <- goose_ask(color_prompt, timeout = 30)
+    color_response <- goose_ask(color_prompt, timeout = getOption("goose.timeout", 300))
     colors_hex <- extract_hex_colors(color_response)
     
     # Parse AI color suggestions
@@ -871,7 +871,7 @@ goose_create_brand_ai <- function(brand_name,
       "Explain why these fonts work for this brand."
     )
     
-    typo_response <- goose_ask(typo_prompt, timeout = 30)
+    typo_response <- goose_ask(typo_prompt, timeout = getOption("goose.timeout", 300))
     
     # Extract font suggestions (simple pattern matching)
     fonts <- extract_font_suggestions(typo_response)
@@ -1025,7 +1025,7 @@ goose_optimize_palette <- function(brand,
                   "3. Specific improvements made")
   
   # Get AI response
-  response <- goose_ask(prompt, timeout = 45)
+  response <- goose_ask(prompt, timeout = getOption("goose.timeout", 300))
   
   # Extract optimized colors
   optimized_colors <- extract_hex_colors(response)

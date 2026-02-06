@@ -1,6 +1,7 @@
 #' Prompt Template Module for GooseR
 #'
 #' Create and manage reusable prompt templates
+#' @name goose_templates
 #' @importFrom glue glue
 #' @importFrom yaml write_yaml read_yaml
 #' @importFrom rappdirs user_data_dir

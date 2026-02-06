@@ -4,6 +4,11 @@
 \alias{StreamHandler}
 \title{Stream Handler R6 Class}
 \description{
+Stream Handler R6 Class
+
+Stream Handler R6 Class
+}
+\details{
 Manages streaming responses from Goose
 }
 \section{Public fields}{
@@ -17,7 +22,11 @@ Manages streaming responses from Goose
 
 \item{\code{error_callback}}{Error callback function}
 
-\item{\code{complete_callback}}{Completion callback function
+\item{\code{complete_callback}}{Completion callback function}
+
+\item{\code{max_time}}{Maximum runtime in seconds (Inf = no limit)}
+
+\item{\code{idle_timeout}}{Maximum time in seconds without output (Inf = no limit)
 Initialize stream handler}
 }
 \if{html}{\out{</div>}}
@@ -59,7 +68,12 @@ Start streaming process}
 \if{latex}{\out{\hypertarget{method-StreamHandler-start}{}}}
 \subsection{Method \code{start()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{StreamHandler$start(query, session_id = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{StreamHandler$start(
+  query,
+  session_id = NULL,
+  max_time = Inf,
+  idle_timeout = Inf
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -67,9 +81,12 @@ Start streaming process}
 \describe{
 \item{\code{query}}{The query to execute}
 
-\item{\code{session_id}}{Optional session ID
-Monitor streaming process
-Get accumulated buffer}
+\item{\code{session_id}}{Optional session ID}
+
+\item{\code{max_time}}{Numeric, maximum runtime in seconds (Inf = no limit)}
+
+\item{\code{idle_timeout}}{Numeric, maximum time in seconds without output (Inf = no limit)
+Monitor streaming process}
 }
 \if{html}{\out{</div>}}
 }
@@ -78,6 +95,9 @@ Get accumulated buffer}
 \if{html}{\out{<a id="method-StreamHandler-monitor"></a>}}
 \if{latex}{\out{\hypertarget{method-StreamHandler-monitor}{}}}
 \subsection{Method \code{monitor()}}{
+Internal loop that reads stdout/stderr, parses chunks, and enforces
+\code{max_time} / \code{idle_timeout}.
+Get accumulated buffer
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{StreamHandler$monitor()}\if{html}{\out{</div>}}
 }
@@ -100,6 +120,7 @@ Stop streaming
 \if{html}{\out{<a id="method-StreamHandler-stop"></a>}}
 \if{latex}{\out{\hypertarget{method-StreamHandler-stop}{}}}
 \subsection{Method \code{stop()}}{
+Kill the underlying streaming process if it is still running.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{StreamHandler$stop()}\if{html}{\out{</div>}}
 }

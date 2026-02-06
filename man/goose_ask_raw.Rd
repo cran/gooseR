@@ -8,7 +8,8 @@ goose_ask_raw(
   prompt,
   output_format = c("text", "json"),
   quiet = TRUE,
-  timeout = 30,
+  timeout = getOption("goose.timeout", 300),
+  retries = getOption("goose.retries", 1),
   session_id = NULL
 )
 }
@@ -19,7 +20,11 @@ goose_ask_raw(
 
 \item{quiet}{Logical, suppress status messages}
 
-\item{timeout}{Numeric, timeout in seconds (default 30)}
+\item{timeout}{Numeric, timeout in seconds (default 300, i.e., 5 minutes).
+Complex queries may take longer. Set to Inf for no timeout.}
+
+\item{retries}{Integer, number of retries after the first attempt (default uses
+\code{getOption('goose.retries', 1)}). Retries only occur for timeout/transient errors.}
 
 \item{session_id}{Optional session ID for context preservation}
 }

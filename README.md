@@ -1,13 +1,19 @@
 # gooseR 🦆
 
-[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-0.1.2-blue.svg)](#)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CRAN Status](https://img.shields.io/badge/CRAN-accepted-brightgreen.svg)](https://cran.r-project.org/package=gooseR)
 
 gooseR brings goose AI into R. It's a comprehensive, intelligent R development assistant powered by the goose CLI.
 
-## 🚀 What's New in v0.1.1 (Feature Complete!)
+## 🚀 What's New in v0.1.2 (Reliability & Timeout Improvements)
+
+- **Critical fix**: increased default timeout from **30s → 300s** (configurable via `options(goose.timeout = 300)`).
+- **Improved reliability**: centralized CLI runner + **retry support** for transient failures.
+- **Safer long-running operations**: streaming guardrails (e.g., `max_time`, `idle_timeout`).
+
+## Highlights from v0.1.1 (Feature Complete!)
 
 ### 🔍 Intelligent Code Analysis
 - **`goose_honk()`** - Actually reads your code and provides specific feedback
@@ -231,7 +237,12 @@ More examples in `docs/assets/` and `inst/examples/`.
 
 ## Version History
 
-### v0.1.1 (Current) - Feature Complete! 🎉
+### v0.1.2 (Current) - Reliability & Timeout Improvements
+- ✅ Increased default timeout from **30s → 300s** (`options(goose.timeout = 300)`)
+- ✅ Retry support for transient failures (`options(goose.retries = 1, goose.retry_delay = 1)`)
+- ✅ Streaming guardrails for long-running operations (e.g., `max_time`, `idle_timeout`)
+
+### v0.1.1 - Feature Complete! 🎉
 - ✅ Intelligent code analysis with `goose_honk()`
 - ✅ Survey data tools for column renaming
 - ✅ Essential workflow functions (5 new)
